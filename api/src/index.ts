@@ -1,7 +1,7 @@
-import { init } from '@stricjs/app';
+import { Elysia } from "elysia";
 
-// fetch animes and store it in a json file
+const app = new Elysia().get("/", () => "Hello Elysia").listen(3000);
 
-init({
-  routes: ['./src/routes/']
-})
+console.log(
+  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+);

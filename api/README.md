@@ -1,9 +1,15 @@
-    Les routes
+# Elysia with Bun runtime
 
-/animes/:page > Récupérer 25 animés
-    - title : string
-    - year : number
-    - genres : string (separated with commas)
-    - type : oav|film|tv|special|ova (oav, ova, special = same)
-    - status : 1|2 (finished <-> ongoing)
+## Getting Started
+To get started with this template, simply paste this command into your terminal:
+```bash
+bun create elysia ./elysia-example
+```
 
+## Development
+To start the development server run:
+```bash
+bun run dev
+```
+
+Open http://localhost:3000/ with your browser to see the result.
