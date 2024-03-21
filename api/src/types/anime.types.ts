@@ -1,30 +1,41 @@
-export type NekoAnime = {
-    id: number
-    title: string
-    title_english: string
-    title_romanji: string
-    title_french: string | null
-    others: string
-    type: string
-    status: string
-    popularity: number
-    url: string
-    genres: string[]
-    url_image: string
-    score: string
-    start_date_year: string
-    nb_eps: string
-}
+import { t } from "elysia"
 
-export type Anime = Omit<
-    NekoAnime,
-    "title" | "title_french" | "url" | "others" | "nb_eps" | "start_date_year" | "status"
-> & {
-    nb_eps: number
-    start_date_year: number
-    status: "en cours" | "terminé"
-    vf: boolean
-}
+export const NekoAnime = t.Object({
+    id: t.Number(),
+    title: t.String(),
+    title_english: t.String(),
+    title_romanji: t.String(),
+    title_french: t.Optional(t.String()),
+    others: t.String(),
+    type: t.String(),
+    status: t.String(),
+    popularity: t.Number(),
+    url: t.String(),
+    genres: t.Array(t.String()),
+    url_image: t.String(),
+    score: t.String(),
+    start_date_year: t.String(),
+    nb_eps: t.String(),
+})
+
+export type NekoAnime = (typeof NekoAnime)["static"]
+
+export const Anime = t.Object({
+    id: t.Number(),
+    title_english: t.String(),
+    title_romanji: t.String(),
+    title_french: t.Optional(t.String()),
+    type: t.String(),
+    status: t.Union([t.Literal("en cours"), t.Literal("terminé")]),
+    popularity: t.Number(),
+    genres: t.Array(t.String()),
+    url_image: t.String(),
+    score: t.String(),
+    start_date_year: t.Number(),
+    nb_eps: t.Number(),
+})
+
+export type Anime = (typeof Anime)["static"]
 
 export function isAnime(anime: any): anime is Anime {
     if (
@@ -45,9 +56,9 @@ export function isAnime(anime: any): anime is Anime {
         (anime.status === "en cours" || anime.status === "terminé") &&
         typeof anime.vf === "boolean"
     ) {
-        return true;
+        return true
     }
-    return false;
+    return false
 }
 
 export function transformNekoAnimeToAnime(nekoAnime: NekoAnime): Anime {
@@ -63,6 +74,5 @@ export function transformNekoAnimeToAnime(nekoAnime: NekoAnime): Anime {
         nb_eps: parseInt(nekoAnime.nb_eps),
         start_date_year: parseInt(nekoAnime.start_date_year),
         status: nekoAnime.status === "1" ? "en cours" : "terminé",
-        vf: nekoAnime.title_french !== null,
     }
 }

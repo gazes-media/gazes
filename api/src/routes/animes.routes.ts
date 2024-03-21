@@ -1,13 +1,14 @@
 import Elysia, { t } from "elysia"
 import Pino from "pino"
 import { filterAnimes } from "../controllers/animes.controllers"
+import { Anime } from "../types/anime.types"
 
 export default function (app: Elysia<"/animes">) {
     const a = app.decorate("logger", Pino())
 
     /* Retrieve a list of 25 animes using pagination */
     a.get(
-        "/",
+        "/animes",
         ({ query }) => {
             const { title, genres, start_date_year, page = 1 } = query
 
@@ -26,6 +27,14 @@ export default function (app: Elysia<"/animes">) {
                 genres: t.Optional(t.String()),
                 start_date_year: t.Optional(t.Numeric()),
             }),
+
+            response: {
+                200: t.Array(Anime)
+            },
+
+            detail: {
+                description: "Return a list of 25 animes filtered by title, genres or start date year."
+            }
         },
     )
 

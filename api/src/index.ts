@@ -1,8 +1,12 @@
 import { startCache } from "./cache"
 import { Elysia } from "elysia"
 import animesRoutes from "./routes/animes.routes"
+import { swagger } from "@elysiajs/swagger"
 
-export const app = new Elysia().group("/animes", animesRoutes).listen(3000)
+export const app = new Elysia()
+  .use(swagger())
+  .use(animesRoutes)
+  .listen(3000)
 
 await startCache()
 
