@@ -11,10 +11,10 @@ export default function (app: Elysia<"/animes">) {
         ({ logger, params, query }) => {
             const page = params.page || 1
             const { title, genres } = query
-            
+
             const animes = filterAnimes({
                 title,
-                genres: genres&&genres.trim()!==""?genres.split(","):undefined  
+                genres: genres && genres.trim() !== "" ? genres.split(",") : undefined,
             })
 
             return animes.slice(page * 25 - 25, page * 25)
@@ -26,7 +26,7 @@ export default function (app: Elysia<"/animes">) {
 
             query: t.Object({
                 title: t.Optional(t.String()),
-                genres: t.Optional(t.String())
+                genres: t.Optional(t.String()),
             }),
         },
     )

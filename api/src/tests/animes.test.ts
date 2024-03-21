@@ -5,7 +5,7 @@ import { Anime } from "../types/anime.types"
 describe("filterAnimes", () => {
     it("should have a 200 status", async () => {
         const response = await app.handle(new Request("http://localhost/animes/1"))
-        
+
         expect(response.status).toBe(200)
     })
 
@@ -19,8 +19,8 @@ describe("filterAnimes", () => {
 
     it("should return only animes with specific genres", async () => {
         const response = await app.handle(new Request("http://localhost/animes/1?genres=action"))
-        const animes = await response.json() as Anime[]
+        const animes = (await response.json()) as Anime[]
 
-        expect(animes.every(anime => anime.genres.includes("action"))).toBe(true)
+        expect(animes.every((anime) => anime.genres.includes("action"))).toBe(true)
     })
 })

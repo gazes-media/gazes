@@ -16,7 +16,10 @@ export type NekoAnime = {
     nb_eps: string
 }
 
-export type Anime = Omit<NekoAnime, "title" | "title_french" | "url" | "others" | "nb_eps" | "start_date_year" | "status"> & {
+export type Anime = Omit<
+    NekoAnime,
+    "title" | "title_french" | "url" | "others" | "nb_eps" | "start_date_year" | "status"
+> & {
     nb_eps: number
     start_date_year: number
     status: "en cours" | "terminé"
