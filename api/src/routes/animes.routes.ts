@@ -12,6 +12,10 @@ export default function (app: Elysia<"/animes">) {
             const page = params.page || 1
             const animes = cachedAnimes.slice(page * 25 - 25, page * 25)
 
+            //TODO filter animes by title query
+            //TODO filter animes by genres (separated by commas)
+            //TODO filter animes by start year
+
             logger.info(animes)
             return animes
         },
