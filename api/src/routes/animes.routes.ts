@@ -5,6 +5,7 @@ import Fuse from "fuse.js"
 
 export default function (app: Elysia<"/animes">) {
     const a = app.decorate("logger", Pino())
+    let fuse: Fuse<any>|null = null
 
     /* Retrieve a list of 25 animes using pagination */
     a.get(
@@ -13,9 +14,10 @@ export default function (app: Elysia<"/animes">) {
             const page = params.page || 1
             const { title } = query
             
+            // TODO filter animes by title query
             let tempAnimes = cachedAnimes
 
-            const fuse = new Fuse(cachedAnimes, {
+            if (!fuse) fuse = new Fuse(cachedAnimes, {
                 includeScore: false,
                 keys: ["title", "title_english", "title_romanji", "title_french", "others"],
             })
