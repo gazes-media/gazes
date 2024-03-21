@@ -20,6 +20,15 @@ export const NekoAnime = t.Object({
 
 export type NekoAnime = (typeof NekoAnime)["static"]
 
+export const Episode = t.Object({
+    time: t.String(),
+    episode: t.String(),
+    num: t.Number(),
+    url_image: t.String()
+})
+
+export type Episode = (typeof Episode)["static"]
+
 export const Anime = t.Object({
     id: t.Number(),
     title_english: t.String(),
@@ -33,6 +42,10 @@ export const Anime = t.Object({
     score: t.String(),
     start_date_year: t.Number(),
     nb_eps: t.Number(),
+
+    synopsis: t.Optional(t.String()),
+    cover_url: t.Optional(t.String()),
+    episodes: t.Optional(t.Array(Episode))
 })
 
 export type Anime = (typeof Anime)["static"]
@@ -63,6 +76,7 @@ export function isAnime(anime: any): anime is Anime {
 
 export function transformNekoAnimeToAnime(nekoAnime: NekoAnime): Anime {
     return {
+        ...nekoAnime,
         id: nekoAnime.id,
         title_english: nekoAnime.title_english,
         title_romanji: nekoAnime.title_romanji,

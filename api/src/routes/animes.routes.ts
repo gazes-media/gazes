@@ -1,7 +1,7 @@
 import Elysia, { t } from "elysia"
 import Pino from "pino"
-import { filterAnimes } from "../controllers/animes.controllers"
-import { Anime } from "../types/anime.types"
+import { filterAnimes, getAnimeByID } from "../controllers/animes.controllers"
+import { Anime, NekoAnime, transformNekoAnimeToAnime } from "../types/anime.types"
 
 export default function (app: Elysia<"/animes">) {
     const a = app.decorate("logger", Pino())
@@ -14,7 +14,7 @@ export default function (app: Elysia<"/animes">) {
 
             const animes = filterAnimes({
                 title,
-                genres: genres?genres.split(","):undefined,
+                genres: genres ? genres.split(",") : undefined,
                 start_date_year: start_date_year,
             })
 
@@ -29,16 +29,42 @@ export default function (app: Elysia<"/animes">) {
             }),
 
             response: {
-                200: t.Array(Anime)
+                200: t.Array(Anime),
             },
 
             detail: {
-                description: "Return a list of 25 animes filtered by title, genres or start date year."
-            }
+                description: "Return a list of 25 animes filtered by title, genres or start date year.",
+            },
         },
     )
 
     /* TODO Retrieve detailed information about an anime */
+    a.get(
+        "/animes/:id",
+        async ({ params, error }) => {
+            const retrievedAnime: NekoAnime|undefined = await getAnimeByID(params.id)
+
+            if (retrievedAnime === undefined) {
+                return error(404, {
+                    error: "anime with the provided id not found",
+                })
+            }
+
+            return transformNekoAnimeToAnime(retrievedAnime)
+        },
+        {
+            params: t.Object({
+                id: t.Numeric(),
+            }),
+
+            response: {
+                200: Anime,
+                404: t.Object({
+                    error: t.Any(),
+                }),
+            },
+        },
+    )
 
     return a
 }
