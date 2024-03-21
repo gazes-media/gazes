@@ -23,4 +23,11 @@ describe("filterAnimes", () => {
 
         expect(animes.every((anime) => anime.genres.includes("action"))).toBe(true)
     })
+
+    it("should return only animes with specific start date year", async () => {
+        const response = await app.handle(new Request("http://localhost/animes/1?start_date_year=2023"))
+        const animes = (await response.json()) as Anime[]
+
+        animes.every((anime) => expect(anime.start_date_year).toBe(2023))
+    })
 })
