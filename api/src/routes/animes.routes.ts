@@ -12,7 +12,7 @@ export default function (app: Elysia<"/animes">) {
         "/:page",
         ({ logger, params, query }) => {
             const page = params.page || 1
-            const { title } = query
+            const { title, genres } = query
             
             // TODO filter animes by title query
             let tempAnimes = cachedAnimes
@@ -27,6 +27,13 @@ export default function (app: Elysia<"/animes">) {
             }
 
             // TODO filter animes by genres (separated by commas)
+            if (genres && genres.trim() !== "") {
+                const splitedGenres = genres.split(",")
+                tempAnimes = tempAnimes.filter(anime => {
+                    return splitedGenres.every(genre => anime.genres.includes(genre));
+                })
+            }
+
             // TODO filter animes by start year
 
             return tempAnimes.slice(page * 25 - 25, page * 25)
@@ -38,6 +45,7 @@ export default function (app: Elysia<"/animes">) {
 
             query: t.Object({
                 title: t.Optional(t.String()),
+                genres: t.Optional(t.String())
             }),
         },
     )
