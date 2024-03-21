@@ -5,12 +5,16 @@ import { Anime } from "../types/anime.types"
 describe("filterAnimes", () => {
     it("should have a 200 status", async () => {
         const response = await app.handle(new Request("http://localhost/animes/1"))
+        
         expect(response.status).toBe(200)
     })
 
-    it("should return a array", async () => {
+    it("should return a array with a length of 25", async () => {
         const response = await app.handle(new Request("http://localhost/animes/1"))
-        expect(await response.json()).toBeArray()
+        const data = await response.json()
+
+        expect(data).toBeArray()
+        expect(data.length).toBeLessThanOrEqual(25)
     })
 
     it("should return only animes with specific genres", async () => {
