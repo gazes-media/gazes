@@ -16,13 +16,13 @@ export default function (app: Elysia<"/animes">) {
             
             // TODO filter animes by title query
             let tempAnimes = cachedAnimes
-
-            if (!fuse) fuse = new Fuse(cachedAnimes, {
-                includeScore: false,
-                keys: ["title", "title_english", "title_romanji", "title_french", "others"],
-            })
             
             if (title && title.trim() !== "") {
+                if (!fuse) fuse = new Fuse(cachedAnimes, {
+                    includeScore: false,
+                    keys: ["title", "title_english", "title_romanji", "title_french", "others"],
+                })
+
                 tempAnimes = fuse.search(title).map(a => a.item)
             }
 
