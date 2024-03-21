@@ -26,6 +26,30 @@ export type Anime = Omit<
     vf: boolean
 }
 
+export function isAnime(anime: any): anime is Anime {
+    if (
+        typeof anime === "object" &&
+        anime !== null &&
+        typeof anime.id === "number" &&
+        typeof anime.title_english === "string" &&
+        typeof anime.title_romanji === "string" &&
+        (typeof anime.title_french === "string" || anime.title_french === null) &&
+        typeof anime.type === "string" &&
+        typeof anime.popularity === "number" &&
+        typeof anime.url === "string" &&
+        Array.isArray(anime.genres) &&
+        typeof anime.url_image === "string" &&
+        typeof anime.score === "string" &&
+        typeof anime.start_date_year === "number" &&
+        typeof anime.nb_eps === "number" &&
+        (anime.status === "en cours" || anime.status === "terminé") &&
+        typeof anime.vf === "boolean"
+    ) {
+        return true;
+    }
+    return false;
+}
+
 export function transformNekoAnimeToAnime(nekoAnime: NekoAnime): Anime {
     return {
         id: nekoAnime.id,

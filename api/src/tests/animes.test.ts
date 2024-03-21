@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import { app } from ".."
-import { Anime } from "../types/anime.types"
+import { Anime, isAnime } from "../types/anime.types"
 
 describe("filterAnimes", () => {
     it("should have a 200 status", async () => {
@@ -29,5 +29,12 @@ describe("filterAnimes", () => {
         const animes = (await response.json()) as Anime[]
 
         animes.every((anime) => expect(anime.start_date_year).toBe(2023))
+    })
+
+    it("should match the real Anime type", async () => {
+        const response = await app.handle(new Request("http://localhost/animes/1"))
+        const animes = (await response.json()) as Anime[]
+        
+        expect(isAnime(animes[0])).toBe(true)
     })
 })

@@ -20,16 +20,16 @@ export function filterAnimes({
             .map((a) => a.item)
     }
 
-    /* filter the animes by genres */
-    if (genres) {
+    /* filter animes by genres */
+    if (genres && genres.length > 0 && genres.every(genre => genre.trim().length > 0)) {
         animes = animes.filter((anime) => genres.every((genre) => anime.genres.includes(genre)))
     }
 
-    /* TODO filter anime by start date year */
+    /* filter animes by start date year */
     if (start_date_year) {
         animes = animes.filter((anime) => anime.start_date_year == start_date_year.toString())
     }
 
-    /* TODO return real animes in the correct Anime type */
+    /* return real animes in the correct Anime type */
     return animes.map((anime) => transformNekoAnimeToAnime(anime))
 }

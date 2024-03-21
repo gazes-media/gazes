@@ -8,13 +8,13 @@ export default function (app: Elysia<"/animes">) {
     /* Retrieve a list of 25 animes using pagination */
     a.get(
         "/:page",
-        ({ logger, params, query }) => {
-            const page = params.page || 1
+        ({ params, query }) => {
+            const { page } = params
             const { title, genres, start_date_year } = query
 
             const animes = filterAnimes({
                 title,
-                genres: genres && genres.trim() !== "" ? genres.split(",") : undefined,
+                genres: genres?genres.split(","):undefined,
                 start_date_year: start_date_year,
             })
 
