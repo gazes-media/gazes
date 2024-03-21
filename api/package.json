@@ -6,7 +6,9 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "elysia": "latest"
+    "elysia": "latest",
+    "pino": "^8.19.0",
+    "prettier": "^3.2.5"
   },
   "devDependencies": {
     "bun-types": "latest"

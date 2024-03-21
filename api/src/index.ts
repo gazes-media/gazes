@@ -1,7 +1,11 @@
-import { Elysia } from "elysia";
+import { startCache } from "./cache"
+import { Elysia } from "elysia"
+import animesRoutes from "./routes/animes.routes"
 
-const app = new Elysia().get("/", () => "Hello Elysia").listen(3000);
+const app = new Elysia()
+  .group("/animes", animesRoutes)
+  .listen(3000)
+  
+await startCache()
 
-console.log(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
-);
+console.log(`api running on port ${app.server?.port}`)
