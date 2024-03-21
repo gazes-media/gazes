@@ -2,7 +2,7 @@ import { startCache } from "./cache"
 import { Elysia } from "elysia"
 import animesRoutes from "./routes/animes.routes"
 
-const app = new Elysia()
+export const app = new Elysia()
   .group("/animes", animesRoutes)
   .listen(3000)
   
