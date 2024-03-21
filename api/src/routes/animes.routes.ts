@@ -7,10 +7,9 @@ export default function (app: Elysia<"/animes">) {
 
     /* Retrieve a list of 25 animes using pagination */
     a.get(
-        "/:page",
-        ({ params, query }) => {
-            const { page } = params
-            const { title, genres, start_date_year } = query
+        "/",
+        ({ query }) => {
+            const { title, genres, start_date_year, page = 1 } = query
 
             const animes = filterAnimes({
                 title,
@@ -21,17 +20,16 @@ export default function (app: Elysia<"/animes">) {
             return animes.slice(page * 25 - 25, page * 25)
         },
         {
-            params: t.Object({
-                page: t.Numeric(),
-            }),
-
             query: t.Object({
+                page: t.Optional(t.Numeric()),
                 title: t.Optional(t.String()),
                 genres: t.Optional(t.String()),
                 start_date_year: t.Optional(t.Numeric()),
             }),
         },
     )
+
+    /* TODO Retrieve detailed information about an anime */
 
     return a
 }
