@@ -9,3 +9,8 @@ async function fillAnimeCache() {
   animeCache = (await fetch(NEKOSAMA_JSON_URL).then(res => res.json())) as NekosamaAnime[]
   logger.info('anime cache refreshed')
 }
+
+export async function refreshAnimeCache() {
+  fillAnimeCache()
+  setInterval(fillAnimeCache, 3600000)
+}

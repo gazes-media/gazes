@@ -1,7 +1,6 @@
 {
   "name": "gazes-api",
   "module": "src/index.ts",
-  "type": "module",
   "devDependencies": {
     "@types/bun": "latest"
   },
@@ -10,5 +9,11 @@
   },
   "scripts": {
     "dev": "bun run --hot src/index.ts"
+  },
+  "type": "module",
+  "dependencies": {
+    "elysia": "^1.0.7",
+    "pino": "^8.19.0",
+    "pino-pretty": "^11.0.0"
   }
 }
