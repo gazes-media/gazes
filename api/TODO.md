@@ -3,3 +3,6 @@
 - [x] implement logic to refresh the cached data every hour
 - [x] test the caching system thoroughly
 - [x] add a logging method using Pino to log into files
+- [ ] setup the controller and service logic
+- [ ] get 25 animes on get request on '/animes'
+- [ ] allow the research by title, startDateYear and genres at the '/animes' route
