@@ -1,5 +1,5 @@
 - [x] design the data structure for cached anime data
 - [x] implement logic to fetch anime data and store it in the cache
 - [x] implement logic to refresh the cached data every hour
-- [ ] test the caching system thoroughly
+- [x] test the caching system thoroughly
 - [x] add a logging method using Pino to log into files
