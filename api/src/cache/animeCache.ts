@@ -1,5 +1,5 @@
 import { logger } from '../logger'
-import type { NekosamaAnime } from '../type/anime.type'
+import type { NekosamaAnime } from '../type/animeType'
 
 const NEKOSAMA_JSON_URL = 'https://neko.ketsuna.com/animes-search-vostfr.json'
 

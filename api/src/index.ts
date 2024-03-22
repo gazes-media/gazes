@@ -1,3 +1,3 @@
-import { refreshAnimeCache } from './cache/anime.cache'
+import { refreshAnimeCache } from './cache/animeCache'
 
 await refreshAnimeCache()
