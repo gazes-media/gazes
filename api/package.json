@@ -1,19 +1,22 @@
 {
-  "name": "api",
-  "version": "1.0.50",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "bun run --watch src/index.ts"
-  },
-  "dependencies": {
-    "@elysiajs/swagger": "^1.0.3",
-    "elysia": "latest",
-    "fuse.js": "^7.0.0",
-    "pino": "^8.19.0",
-    "prettier": "^3.2.5"
-  },
+  "name": "gazes-api",
+  "module": "src/index.ts",
   "devDependencies": {
-    "bun-types": "latest"
+    "@types/bun": "latest",
+    "@types/he": "^1.2.3"
   },
-  "module": "src/index.js"
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "dev": "bun run --hot src/index.ts"
+  },
+  "type": "module",
+  "dependencies": {
+    "elysia": "^1.0.7",
+    "fuse.js": "^7.0.0",
+    "he": "^1.2.0",
+    "pino": "^8.19.0",
+    "pino-pretty": "^11.0.0"
+  }
 }

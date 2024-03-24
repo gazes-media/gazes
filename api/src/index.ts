@@ -1,13 +1,13 @@
-import { startCache } from "./cache"
-import { Elysia } from "elysia"
-import animesRoutes from "./routes/animes.routes"
-import { swagger } from "@elysiajs/swagger"
+import Elysia from 'elysia'
+import { refreshAnimeCache } from './cache/animeCache'
+import controller from './controller'
+import { logger } from './logger'
 
-export const app = new Elysia()
-  .use(swagger())
-  .use(animesRoutes)
-  .listen(3000)
+const PORT = Bun.env.PORT!
 
-await startCache()
+const app = new Elysia().use(controller)
 
-console.log(`api running on port ${app.server?.port}`)
+await refreshAnimeCache()
+app.listen(PORT)
+
+logger.info('server running on port ' + PORT)
