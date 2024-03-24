@@ -19,3 +19,24 @@ export const NekosamaAnime = t.Object({
 })
 
 export type NekosamaAnime = (typeof NekosamaAnime)['static']
+
+export const Episode = t.Object({
+  time: t.String(),
+  episode: t.String(),
+  num: t.Number(),
+  url: t.String(),
+  url_image: t.String(),
+})
+
+export type Episode = (typeof Episode)['static']
+
+export const DetailedNekosamaAnime = t.Composite([
+  NekosamaAnime,
+  t.Object({
+    synopsis: t.String(),
+    cover_url: t.String(),
+    episodes: t.Array(Episode),
+  }),
+])
+
+export type DetailedNekosamaAnime = (typeof DetailedNekosamaAnime)['static']
