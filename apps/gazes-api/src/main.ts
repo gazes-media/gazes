@@ -19,26 +19,26 @@ async function main() {
   const NEKOSAMA_JSON_URL = 'https://neko.ketsuna.com/animes-search-vostfr.json'
   const animeCache = (await fetch(NEKOSAMA_JSON_URL).then(res => res.json())) as any[]
 
-  animeCache.forEach((a) => {
-    prisma.anime.create({
-      data: {
-        id: a.id,
-        NbEps: a.nb_eps,
-        others: a.others,
-        Popularity: a.popularity,
-        Score: a.score,
-        StartDateYear: a.start_date_year,
-        Status: a.status,
-        title: a.title,
-        title_english: a.title_english,
-        title_romanji: a.title_romanji,
-        Type: a.type,
-        Url: a.url,
-        UrlImage: a.url_image,
-        Genres: a.genres
-      }
-    })
-  })
+  prisma.anime.createMany({
+    data: animeCache.map(a => ({
+      id: a.id,
+      NbEps: parseInt(a.nb_eps.split(" ")[0]) || null,
+      others: a.others,
+      Popularity: a.popularity,
+      Score: a.score,
+      StartDateYear: a.start_date_year,
+      Status: a.status,
+      title: a.title,
+      title_english: a.title_english,
+      title_romanji: a.title_romanji,
+      Type: a.type,
+      Url: a.url,
+      UrlImage: a.url_image,
+      Genres: a.genres
+    })),
+
+    skipDuplicates: true
+  }).then(a => console.log(a))
 
   // Start listening.
   server.listen({ port, host }, (err) => {
