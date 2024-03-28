@@ -6,5 +6,6 @@ services:
     shm_size: 128mb
     environment:
       POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydb
     ports:
       - "5432:5432"

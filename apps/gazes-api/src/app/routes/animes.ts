@@ -26,28 +26,43 @@ export default async function (fastify: FastifyInstance) {
     }, async function (req, rep) {
         const { page = 1, title, genres, status, releaseDate } = req.query
 
-        console.log(genres)
-
-        return prisma.anime.findMany({
+        let findManyObject = {
             skip: 25 * (page - 1),
-            take: 25 * page,
-            where: {
+            take: 25 * page
+        }
+
+        if (title) {
+            findManyObject['where'] = {
                 others: {
                     search: title?.split(" ").join(" & ")
-                },
-
+                }
+            }
+        }
+        if(genres) {
+            findManyObject['where'] = {
+                ...findManyObject['where'],
                 Genres: {
                     hasEvery: genres?.split(',')
-                },
-
+                }
+            }
+        }
+        if(status) {
+            findManyObject['where'] = {
+                ...findManyObject['where'],
                 Status: {
                     equals: status?.toString()
-                },
-
+                }
+            }
+        }
+        if(releaseDate) {
+            findManyObject['where'] = {
+                ...findManyObject['where'],
                 StartDateYear: {
                     equals: releaseDate?.toString()
                 }
             }
-        })
+        }
+
+        return prisma.anime.findMany(findManyObject)
     });
 }
