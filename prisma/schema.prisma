@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -14,11 +15,11 @@ datasource db {
 }
 
 model Anime {
-  id Int @id
+  id Int @id @unique
   title String
-  title_english String
-  title_romanji String
-  others String
+  title_english String?
+  title_romanji String?
+  others String?
   Type String
   Status String
   Popularity Float
@@ -27,5 +28,5 @@ model Anime {
   UrlImage String
   Score String
   StartDateYear String
-  NbEps Int
+  NbEps Int?
 }
