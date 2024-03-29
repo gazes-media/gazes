@@ -1,16 +1,11 @@
-import { getAnimeById, getEpisodeVideo } from "@app/services/animeService";
-import {
-  AnimeListQuerystring,
-  AnimeListQuerystringSchema,
-  AnimeDetailParams,
-  AnimeDetailParamsSchema,
-  EpisodeParams,
-  EpisodeParamsSchema,
-} from "@contracts/animesContract";
+import { AnimeListQuerystring, AnimeListQuerystringSchema, AnimeDetailParams, AnimeDetailParamsSchema, EpisodeParams, EpisodeParamsSchema } from "@api/contracts/animesContract";
 import { FastifyInstance } from "fastify";
-import { AppOptions } from "main";
+import { AppOptions } from "@api/main";
+import { getAnimeById, getEpisodeVideo } from "@api/services/animeService";
+
 
 export default async function (fastify: FastifyInstance, { redis, prisma }: AppOptions) {
+
   /**
    * @fileoverview This handler provides a paginated list of animes, with optional filtering based on title, genres, status, and release year.
    *
@@ -93,47 +88,45 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
   
   });
 
-  fastify.get<{ Params: EpisodeParams }>(
-    "/animes/:id/:ep",
-    { schema: { params: EpisodeParamsSchema } },
-    async (req, rep) => {
-      const { id, ep } = req.params;
+  fastify.get<{ Params: EpisodeParams }>("/animes/:id/:ep", { 
+    schema: { params: EpisodeParamsSchema } 
+  }, async (req, rep) => {
+    const { id, ep } = req.params;
 
-      if (ep <= 0) {
-        rep.status(404).send("Episode Not Found");
-        return;
-      }
-
-      const { episodes, ...anime } = await getAnimeById(prisma, redis, id);
-
-      if (!anime) {
-        rep.status(404).send("Anime Not Found");
-        return;
-      }
-
-      if (ep > episodes.length) {
-        rep.status(404).send("Episode Not Found");
-        return;
-      }
-
-      const episodeKey = `episode:${id}:${ep}`;
-      const episode = episodes.at(ep - 1);
-
-      let cachedEpisode = await redis.get(episodeKey);
-
-      let { vf = null, vostfr = null } = cachedEpisode ? JSON.parse(cachedEpisode) : {};
-
-      if (!vostfr) vostfr = await getEpisodeVideo(episode);
-      if (!vf) vf = await getEpisodeVideo(episode, true);
-
-      await redis.set(episodeKey, JSON.stringify({ vf, vostfr }));
-      await redis.expireAt(episodeKey, Date.now() + 7200000);
-
-      rep.status(200).send({
-        anime,
-        episode,
-        videos: { vostfr, vf },
-      });
+    if (ep <= 0) {
+      rep.status(404).send("Episode Not Found");
+      return;
     }
-  );
+
+    const { episodes, ...anime } = await getAnimeById(prisma, redis, id);
+
+    if (!anime) {
+      rep.status(404).send("Anime Not Found");
+      return;
+    }
+
+    if (ep > episodes.length) {
+      rep.status(404).send("Episode Not Found");
+      return;
+    }
+
+    const episodeKey = `episode:${id}:${ep}`;
+    const episode = episodes.at(ep - 1);
+
+    let cachedEpisode = await redis.get(episodeKey);
+
+    let { vf = null, vostfr = null } = cachedEpisode ? JSON.parse(cachedEpisode) : {};
+
+    if (!vostfr) vostfr = await getEpisodeVideo(episode);
+    if (!vf) vf = await getEpisodeVideo(episode, true);
+
+    await redis.set(episodeKey, JSON.stringify({ vf, vostfr }));
+    await redis.expireAt(episodeKey, Date.now() + 7200000);
+
+    rep.status(200).send({
+      anime,
+      episode,
+      videos: { vostfr, vf },
+    });
+  });
 }

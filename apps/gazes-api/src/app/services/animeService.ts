@@ -1,7 +1,7 @@
-import { Anime, Episode, PrismaClient } from "@prisma/client";
+import { PrismaClient, Episode, Anime } from "@prisma/client";
+import { server, RedisClient } from "@api/main";
+import { config } from "@api/config";
 import he from "he";
-import { config } from "config";
-import { RedisClient, server } from "main";
 
 async function fetchText(url: string): Promise<string> {
   try {

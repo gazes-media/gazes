@@ -1,8 +1,8 @@
-import Fastify from "fastify";
-import { app } from "./app/app";
+import { app } from "@api/app/app";
+import { config } from "@api/config";
 import { PrismaClient } from "@prisma/client";
+import Fastify from "fastify";
 import { createClient } from "redis";
-import { config } from "./config";
 
 export const server = Fastify({
   logger: false,

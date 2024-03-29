@@ -2,8 +2,8 @@ import * as path from "path";
 import { FastifyInstance } from "fastify";
 import AutoLoad from "@fastify/autoload";
 import { PrismaClient } from "@prisma/client";
-import { AppOptions } from "main";
-import { config } from "config";
+import { AppOptions } from "@api/main";
+import { config } from "@api/config";
 
 export async function app(fastify: FastifyInstance, opts: AppOptions) {
   updateAnimeDatabase(opts.prisma);

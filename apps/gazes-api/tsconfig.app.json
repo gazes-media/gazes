@@ -4,14 +4,6 @@
     "outDir": "../../dist/out-tsc",
     "module": "commonjs",
     "types": ["node"],
-    "baseUrl": "./src",
-    "paths": {
-      "@app/*": ["app/*"],
-      "@contracts/*": ["contracts/*"],
-      "@plugins/*": ["app/plugins/*"],
-      "@routes/*": ["app/routes/*"],
-      "@services/*": ["app/services/*"]
-    }
   },
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"],
   "include": ["src/**/*.ts"]
