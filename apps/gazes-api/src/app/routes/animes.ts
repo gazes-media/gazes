@@ -11,6 +11,7 @@ import { getAnimeById, getEpisodeVideo } from "../services/animeService";
 import { AppOptions } from "../../main";
 
 export default async function (fastify: FastifyInstance, {redis, prisma}: AppOptions) {
+
   fastify.get<{ Querystring: AnimeListQuerystring }>(
     "/animes",
     {
@@ -22,12 +23,15 @@ export default async function (fastify: FastifyInstance, {redis, prisma}: AppOpt
       let findManyObject = {
         skip: 25 * (page - 1),
         take: 25 * page,
+        where: {}
       };
 
-      if (title) findManyObject["where"]["others"]["search"] = title.split(" ").join(" & ");
-      if (genres) findManyObject["where"]["Genres"]["hasEvery"] = genres.split(",");
-      if (status) findManyObject["where"]["Status"]["equals"] = status.toString();
-      if (releaseDate) findManyObject["where"]["StartDateYear"]["equals"] = releaseDate.toString();
+      if (title) findManyObject["where"]["others"] = {"search": title.split(" ").join(" & ")};
+      if (genres) findManyObject["where"]["Genres"] = {"hasEvery": genres.split(",")};
+      if (status) findManyObject["where"]["Status"] = {"equals": status.toString()};
+      if (releaseDate) findManyObject["where"]["StartDateYear"] = {"equals": releaseDate.toString()};
+
+      console.log(findManyObject)
 
       const receivedAnimeList = await prisma.anime.findMany(findManyObject);
       rep.send(receivedAnimeList).status(200);

@@ -1,16 +1,30 @@
 import { Anime, Episode, PrismaClient } from "@prisma/client";
 import he from "he";
 import { PROXY_URL, RedisClient, server } from "../../main";
-import { app } from "../app";
+
+async function fetchText(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch: " + url);
+    return await response.text();
+  } catch (err) {
+    server.log.error(err);
+    return undefined;
+  }
+}
 
 /**
  * Fetches an anime by its ID from the database. If certain details like the synopsis,
  * cover URL, or episodes are missing, it updates these details from an external source.
  */
-export async function getAnimeById(prisma: PrismaClient, redis: RedisClient, id: number): Promise<{episodes: Episode[]} & Anime | undefined> {
+export async function getAnimeById(
+  prisma: PrismaClient,
+  redis: RedisClient,
+  id: number
+): Promise<({ episodes: Episode[] } & Anime)> {
   // récupérer dans le cache la map de l'anime
-  const cachedAnime = await redis.get(`anime:${id}`)
-  if (cachedAnime) return JSON.parse(cachedAnime)
+  const cachedAnime = await redis.get(`anime:${id}`);
+  if (cachedAnime) return JSON.parse(cachedAnime);
 
   let retrievedAnime = await prisma.anime.findUnique({
     where: { id },
@@ -29,7 +43,7 @@ export async function getAnimeById(prisma: PrismaClient, redis: RedisClient, id:
   }
 
   if (retrievedAnime) {
-    await redis.set(`anime:${id}`, JSON.stringify(retrievedAnime))
+    await redis.set(`anime:${id}`, JSON.stringify(retrievedAnime));
     await redis.expireAt(`anime:${id}`, Date.now() + 7200000);
   }
   return retrievedAnime;
@@ -39,13 +53,15 @@ export async function getAnimeById(prisma: PrismaClient, redis: RedisClient, id:
  * Updates the details of an anime by fetching them from an external source.
  */
 async function updateAnimeDetails(prisma: PrismaClient, anime: Anime) {
-  const html = await fetch(`https://neko.ketsuna.com/${anime.url}`).then(res => res.text()).catch((err) => server.log.error(err));
-  if (!html) return undefined
+  const html = await fetch(`https://neko.ketsuna.com/${anime.url}`)
+    .then((res) => res.text())
+    .catch((err) => server.log.error(err));
+  if (!html) return undefined;
 
   const status = extractStatus(html);
   const synopsis = extractSynopsis(html);
 
-  console.log(synopsis)
+  console.log(synopsis);
 
   const cover_url = extractCoverUrl(html);
   const newEpisodes = extractEpisodes(html);
@@ -69,15 +85,15 @@ async function updateAnimeDetails(prisma: PrismaClient, anime: Anime) {
 }
 
 function extractStatus(html: string): string {
-  const status = html.match(/(<small>Status<\/small> )(.*)/)?.[2]
-  return status == "En cours" ? "1" : "2"
+  const status = html.match(/(<small>Status<\/small> )(.*)/)?.[2];
+  return status == "En cours" ? "1" : "2";
 }
 
 /**
  * Extracts the synopsis from the HTML content.
  */
 function extractSynopsis(html: string): string {
-  return he.decode(/(<div class="synopsis">\n<p>\n)(.*)/gm.exec(html)?.[2] as string).replace(/<[^>]*>/g, '')
+  return he.decode(/(<div class="synopsis">\n<p>\n)(.*)/gm.exec(html)?.[2] as string).replace(/<[^>]*>/g, "");
 }
 
 /**
@@ -95,32 +111,31 @@ function extractEpisodes(html: string): any[] {
   return episodes.map(({ title, ...newEpisode }: any) => newEpisode);
 }
 
-
 export async function getEpisodeVideo(episode: Episode, vf: boolean = false) {
-      let proxiedEpisodeUrl = 'https://neko.ketsuna.com' + episode.url
-      if (vf) proxiedEpisodeUrl = proxiedEpisodeUrl.replace("vostfr", "vf")
+  let proxiedEpisodeUrl = "https://neko.ketsuna.com" + episode.url;
+  if (vf) proxiedEpisodeUrl = proxiedEpisodeUrl.replace("vostfr", "vf");
 
-      const episodeHtml = await fetch(proxiedEpisodeUrl).then(res => res.text())
-      if (!episodeHtml) return undefined
-    
-      const playerUrl = episodeHtml.match(/video\[0\] = '([^']*)';/)?.[1]
-      if (!playerUrl) return undefined
-    
-      const playerHtml = await fetch(PROXY_URL + encodeURIComponent(playerUrl)).then(res => res.text())
-      if (!playerHtml || playerHtml === '') return undefined
-    
-      const scriptUrl = playerHtml.match(/src="(https?:\/\/[^"]*\/f\/u\/u[^"]*)"/)?.[1]
-      if (!scriptUrl) return undefined
-    
-      const scriptJs = await fetch(PROXY_URL + encodeURIComponent(scriptUrl)).then(res => res.text())
-      if (!scriptJs) return undefined
-    
-      const videoObjectEncoded = scriptJs.match(/atob\("([^"]+)"/)?.[1]
-      if (!videoObjectEncoded) return undefined
-    
-      const videoObject = atob(videoObjectEncoded)
-      const videoUrl = videoObject.match(/"ezofpjbzoiefhzofsdhvuzehfg"\s*:\s*"([^"]+)"/)?.[1]
-    
-      if (!videoUrl) return undefined
-      return PROXY_URL + encodeURIComponent(videoUrl.replace(/\\/g, ''))
+  const episodeHtml = await fetch(proxiedEpisodeUrl).then((res) => res.text());
+  if (!episodeHtml) return undefined;
+
+  const playerUrl = episodeHtml.match(/video\[0\] = '([^']*)';/)?.[1];
+  if (!playerUrl) return undefined;
+
+  const playerHtml = await fetch(PROXY_URL + encodeURIComponent(playerUrl)).then((res) => res.text());
+  if (!playerHtml || playerHtml === "") return undefined;
+
+  const scriptUrl = playerHtml.match(/src="(https?:\/\/[^"]*\/f\/u\/u[^"]*)"/)?.[1];
+  if (!scriptUrl) return undefined;
+
+  const scriptJs = await fetch(PROXY_URL + encodeURIComponent(scriptUrl)).then((res) => res.text());
+  if (!scriptJs) return undefined;
+
+  const videoObjectEncoded = scriptJs.match(/atob\("([^"]+)"/)?.[1];
+  if (!videoObjectEncoded) return undefined;
+
+  const videoObject = atob(videoObjectEncoded);
+  const videoUrl = videoObject.match(/"ezofpjbzoiefhzofsdhvuzehfg"\s*:\s*"([^"]+)"/)?.[1];
+
+  if (!videoUrl) return undefined;
+  return PROXY_URL + encodeURIComponent(videoUrl.replace(/\\/g, ""));
 }
