@@ -18,7 +18,6 @@ export interface AppOptions {
 }
 
 async function main() {
-  await prisma.$connect();
   await redis.connect();
 
   if (process.env.NODE_ENV === 'development') {
@@ -40,6 +39,9 @@ async function main() {
   );
 }
 
-main().finally(() => {
-  console.log("test")
-});
+main()
+
+process.on('exit', () => {
+  prisma.$disconnect()
+  redis.disconnect()
+})

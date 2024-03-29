@@ -1,11 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearch"]
 }
 
@@ -15,37 +9,33 @@ datasource db {
 }
 
 model Anime {
-  id Int @id @unique
-  title String
-  title_english String?
-  title_romanji String?
-  title_french String?
-  others String?
-  type String
-  status String
-  popularity Float
-  url String
-  genres String[]
-  url_image String
-  score String
+  id              Int       @id @unique
+  title           String
+  title_english   String?
+  title_romanji   String?
+  others          String?
+  cover_url       String?
+  genres          String[]
+  nb_eps          Int?
+  popularity      Float
+  score           String
   start_date_year String
-  nb_eps Int?
-
-  synopsis String?
-  cover_url String?
-
-  episodes Episode[]
+  status          String
+  synopsis        String?
+  type            String
+  url             String
+  url_image       String
+  title_french    String?
+  episodes        Episode[]
 }
 
 model Episode {
-  id Int @id @default(autoincrement())
-
-  time String
-  episode String 
-  num Int
-  url String @unique
+  id        Int    @id @default(autoincrement())
+  time      String
+  episode   String
+  num       Int
+  url       String @unique
   url_image String
-
-  anime Anime @relation(fields: [animeId], references: [id])
-  animeId Int
+  animeId   Int
+  anime     Anime  @relation(fields: [animeId], references: [id])
 }
