@@ -35,6 +35,7 @@ model Anime {
   cover_url String?
 
   episodes Episode[]
+  latest Latest[]
 }
 
 model Episode {
@@ -48,4 +49,15 @@ model Episode {
 
   anime Anime @relation(fields: [animeId], references: [id])
   animeId Int
+}
+
+model Latest {
+  id Int @id @default(autoincrement())
+  timestamp DateTime @default(now())
+  episode String
+  lang String
+  anime_url String @unique
+
+  animeId Int
+  anime Anime @relation(fields: [animeId], references: [id])
 }
