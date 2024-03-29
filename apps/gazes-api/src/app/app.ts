@@ -1,7 +1,7 @@
 import * as path from "path";
 import { FastifyInstance } from "fastify";
 import AutoLoad from "@fastify/autoload";
-import { Anime, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { AppOptions } from "@api/main";
 import { config } from "@api/config";
 import { Latest } from "@api/contracts/animesContract";
@@ -53,7 +53,7 @@ async function updateAnimeDatabase(prisma: PrismaClient) {
       episode: episode.episode,
       lang: episode.lang,
       anime_url: episode.url,
-      animeId: parseInt(episode.anime_url.match(/\/(\d+)/i)?.[1]),
+      anime_id: parseInt(episode.anime_url.match(/\/(\d+)/i)?.[1]),
     })),
 
     skipDuplicates: true,

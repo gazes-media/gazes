@@ -47,8 +47,8 @@ model Episode {
   url String @unique
   url_image String
 
-  anime Anime @relation(fields: [animeId], references: [id])
-  animeId Int
+  anime Anime @relation(fields: [anime_id], references: [id])
+  anime_id Int
 }
 
 model Latest {
@@ -58,6 +58,6 @@ model Latest {
   lang String
   anime_url String @unique
 
-  animeId Int
-  anime Anime @relation(fields: [animeId], references: [id])
+  anime_id Int
+  anime Anime @relation(fields: [anime_id], references: [id])
 }

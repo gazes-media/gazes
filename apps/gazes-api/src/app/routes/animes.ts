@@ -1,11 +1,16 @@
-import { AnimeListQuerystring, AnimeListQuerystringSchema, AnimeDetailParams, AnimeDetailParamsSchema, EpisodeParams, EpisodeParamsSchema } from "@api/contracts/animesContract";
+import {
+  AnimeListQuerystring,
+  AnimeListQuerystringSchema,
+  AnimeDetailParams,
+  AnimeDetailParamsSchema,
+  EpisodeParams,
+  EpisodeParamsSchema,
+} from "@api/contracts/animesContract";
 import { FastifyInstance } from "fastify";
 import { AppOptions } from "@api/main";
 import { getAnimeById, getEpisodeVideo } from "@api/services/animeService";
 
-
 export default async function (fastify: FastifyInstance, { redis, prisma }: AppOptions) {
-
   /**
    * @fileoverview This handler provides a paginated list of animes, with optional filtering based on title, genres, status, and release year.
    *
@@ -25,130 +30,147 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
    * - 400 Bad Request: The request was malformed. This can happen if the query parameters are not in the expected format.
    * - 500 Internal Server Error: An error occurred on the server while processing the request.
    */
-  fastify.get<{ Querystring: AnimeListQuerystring }>("/animes", {
-    schema: { querystring: AnimeListQuerystringSchema },
-  }, async (req, rep) => {
-     
-    // Extract query parameters with default values
-    const { page = 1, title, genres, status, releaseDate } = req.query;
+  fastify.get<{ Querystring: AnimeListQuerystring }>(
+    "/animes",
+    {
+      schema: { querystring: AnimeListQuerystringSchema },
+    },
+    async (req, rep) => {
+      // Extract query parameters with default values
+      const { page = 1, title, genres, status, releaseDate } = req.query;
 
-    // Prepare the Prisma findMany query object with pagination and conditional filters
-    let queryOptions = {
-      skip: 25 * (page - 1), // Calculate offset for pagination
-      take: 25, // Limit the number of returned items to 25 for pagination
-      where: {},
-    };
+      // Prepare the Prisma findMany query object with pagination and conditional filters
+      let queryOptions = {
+        skip: 25 * (page - 1), // Calculate offset for pagination
+        take: 25, // Limit the number of returned items to 25 for pagination
+        where: {},
+      };
 
-    // Conditional filters based on the query parameters provided by the client
-    if (title) queryOptions["where"]["others"] = { search: title.split(" ").join(" & ") };
-    if (genres) queryOptions["where"]["genres"] = { hasEvery: genres.split(",") };
-    if (status) queryOptions["where"]["status"] = { equals: status.toString() };
-    if (releaseDate) queryOptions["where"]["start_date_year"] = { equals: releaseDate.toString() };
+      // Conditional filters based on the query parameters provided by the client
+      if (title) queryOptions["where"]["others"] = { search: title.split(" ").join(" & ") };
+      if (genres) queryOptions["where"]["genres"] = { hasEvery: genres.split(",") };
+      if (status) queryOptions["where"]["status"] = { equals: status.toString() };
+      if (releaseDate) queryOptions["where"]["start_date_year"] = { equals: releaseDate.toString() };
 
-    // Execute the query using the Prisma client and send the result back to the client
-    const animeList = await prisma.anime.findMany(queryOptions);
-    rep.status(200).send(animeList);
-
-  });
+      // Execute the query using the Prisma client and send the result back to the client
+      const animeList = await prisma.anime.findMany(queryOptions);
+      rep.status(200).send(animeList);
+    }
+  );
 
   /**
    * @fileoverview This handler retrieves the latest episodes of animes from the database.
-   * 
+   *
    * The route defined by this handler is part of the Anime listing API, allowing clients to query for the latest episodes
    * of animes stored in the database. The latest episodes are stored in a separate table in the database, which is updated
    * periodically by fetching the latest episodes from an external source. This handler simply retrieves the latest episodes
    * from the database and sends them back to the client.
-   * 
+   *
    * Responses:
    * - 200 OK: Successfully retrieved the list of latest episodes. The response body contains an array of latest episode objects.
    * - 500 Internal Server Error: An error occurred on the server while processing the request.
-   * 
    */
   fastify.get("/animes/latest", async (req, rep) => {
-    const latest = await prisma.latest.findMany({
-      orderBy: { timestamp: "desc" },
-      include: { anime: true },
-    });
+    try {
+      const latestList = await prisma.latest.findMany({
+        orderBy: { timestamp: "desc" },
+        include: { anime: true },
+      });
 
-    rep.status(200).send(latest.map(({ timestamp, id, animeId, anime_url, ...rest }) => ({ timestamp: Date.parse(timestamp.toUTCString()),...rest })));
-  })
+      const mapedLatestList = latestList.map(({ timestamp, id, anime_id, anime_url, ...remains }) => ({
+        timestamp: timestamp.getTime(),
+        ...remains,
+      }));
+
+      rep.status(200).send(mapedLatestList);
+    } catch (err) {
+      console.error("Failed to fetch latest animes:", err);
+      rep.status(500).send({ error: "Internal Server Error" });
+    }
+  });
 
   /**
    * @fileoverview This handler retrieves detailed information for a specified anime identified by its unique ID.
-   * 
+   *
    * The route defined by this handler is part of the Anime details API, enabling client to query detailed information
    * about a single anime. This includes its title, synopsis, cover image, episode, and more. The anime ID used to fetch
    * the details is provided as a URL parameter; This handler makes use of a service function 'getAnimeById' which abstracts
    * the logic for retrieving the anime details from the database or cache, providing a clean separation of concerns.
-   * 
+   *
    * URL Parameters:
    * - 'id': The unique identifier of the anime to retrieve. This must be a valid integer corresponding to the ID of the anime
    * in the database.
-   * 
+   *
    * Responses:
    * - 200 OK: Successfully retrieved the details of the requested anime. The response body contains the anime object.
-   * - 404 Not Found: No anime could be found for the given ID. This indicates either an invalid or that the requested anime 
+   * - 404 Not Found: No anime could be found for the given ID. This indicates either an invalid or that the requested anime
    * does not exists in the database
    * - 500 Internal Server Error: An error occurered on the server while processing the request. This indicates an unexpected
    * issue that prevented the server from fulfilling the request.
    */
-  fastify.get<{ Params: AnimeDetailParams }>("/animes/:id", { 
-    schema: { params: AnimeDetailParamsSchema } 
-  }, async (req, rep) => {
-     
-    // Attempt to retrieve the anime details using the provided ID
-    const anime = await getAnimeById(prisma, redis, req.params.id);
+  fastify.get<{ Params: AnimeDetailParams }>(
+    "/animes/:id",
+    {
+      schema: { params: AnimeDetailParamsSchema },
+    },
+    async (req, rep) => {
+      // Attempt to retrieve the anime details using the provided ID
+      const anime = await getAnimeById(prisma, redis, req.params.id);
 
-    // Check if the anime was found and respond accordingly
-    if (!anime) {
-      rep.status(404).send("Anime Not Found");
-      return;
+      // Check if the anime was found and respond accordingly
+      if (!anime) {
+        rep.status(404).send("Anime Not Found");
+        return;
+      }
+
+      // Respond with the found anime details
+      rep.status(200).send(anime);
     }
+  );
 
-    // Respond with the found anime details
-    rep.status(200).send(anime);
-  
-  });
+  fastify.get<{ Params: EpisodeParams }>(
+    "/animes/:id/:ep",
+    {
+      schema: { params: EpisodeParamsSchema },
+    },
+    async (req, rep) => {
+      const { id, ep } = req.params;
 
-  fastify.get<{ Params: EpisodeParams }>("/animes/:id/:ep", { 
-    schema: { params: EpisodeParamsSchema } 
-  }, async (req, rep) => {
-    const { id, ep } = req.params;
+      if (ep <= 0) {
+        rep.status(404).send("Episode Not Found");
+        return;
+      }
 
-    if (ep <= 0) {
-      rep.status(404).send("Episode Not Found");
-      return;
+      const { episodes, ...anime } = await getAnimeById(prisma, redis, id);
+
+      if (!anime) {
+        rep.status(404).send("Anime Not Found");
+        return;
+      }
+
+      if (ep > episodes.length) {
+        rep.status(404).send("Episode Not Found");
+        return;
+      }
+
+      const episodeKey = `episode:${id}:${ep}`;
+      const episode = episodes.at(ep - 1);
+
+      let cachedEpisode = await redis.get(episodeKey);
+
+      let { vf = null, vostfr = null } = cachedEpisode ? JSON.parse(cachedEpisode) : {};
+
+      if (!vostfr) vostfr = await getEpisodeVideo(episode);
+      if (!vf) vf = await getEpisodeVideo(episode, true);
+
+      await redis.set(episodeKey, JSON.stringify({ vf, vostfr }));
+      await redis.expireAt(episodeKey, Date.now() + 7200000);
+
+      rep.status(200).send({
+        anime,
+        episode,
+        videos: { vostfr, vf },
+      });
     }
-
-    const { episodes, ...anime } = await getAnimeById(prisma, redis, id);
-
-    if (!anime) {
-      rep.status(404).send("Anime Not Found");
-      return;
-    }
-
-    if (ep > episodes.length) {
-      rep.status(404).send("Episode Not Found");
-      return;
-    }
-
-    const episodeKey = `episode:${id}:${ep}`;
-    const episode = episodes.at(ep - 1);
-
-    let cachedEpisode = await redis.get(episodeKey);
-
-    let { vf = null, vostfr = null } = cachedEpisode ? JSON.parse(cachedEpisode) : {};
-
-    if (!vostfr) vostfr = await getEpisodeVideo(episode);
-    if (!vf) vf = await getEpisodeVideo(episode, true);
-
-    await redis.set(episodeKey, JSON.stringify({ vf, vostfr }));
-    await redis.expireAt(episodeKey, Date.now() + 7200000);
-
-    rep.status(200).send({
-      anime,
-      episode,
-      videos: { vostfr, vf },
-    });
-  });
+  );
 }

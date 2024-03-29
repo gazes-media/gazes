@@ -29,7 +29,7 @@ export async function getAnimeById(
 
   let retrievedAnime = await prisma.anime.findUnique({
     where: { id },
-    include: { episodes: { where: { animeId: id } } },
+    include: { episodes: { where: { anime_id: id } } },
   });
 
   if (!retrievedAnime) return undefined;
