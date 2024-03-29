@@ -44,6 +44,9 @@ async function updateAnimeDetails(prisma: PrismaClient, anime: Anime) {
 
   const status = extractStatus(html);
   const synopsis = extractSynopsis(html);
+
+  console.log(synopsis)
+
   const cover_url = extractCoverUrl(html);
   const newEpisodes = extractEpisodes(html);
 
@@ -66,8 +69,7 @@ async function updateAnimeDetails(prisma: PrismaClient, anime: Anime) {
 }
 
 function extractStatus(html: string): string {
-  const status = html.match(/<small>Status<\/small> (.*)/gm)?.[1]
-  console.log(status)
+  const status = html.match(/(<small>Status<\/small> )(.*)/)?.[2]
   return status == "En cours" ? "1" : "2"
 }
 
@@ -75,7 +77,7 @@ function extractStatus(html: string): string {
  * Extracts the synopsis from the HTML content.
  */
 function extractSynopsis(html: string): string {
-  return he.decode(/<div class="synopsis">\n<p>\n(.*)<\/p>/gm.exec(html)?.[1] ?? "").replace(/<[^>]*>/g, "");
+  return he.decode(/(<div class="synopsis">\n<p>\n)(.*)/gm.exec(html)?.[2] as string).replace(/<[^>]*>/g, '')
 }
 
 /**
