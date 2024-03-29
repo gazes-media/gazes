@@ -72,6 +72,12 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
    */
   fastify.get("/animes/latest", async (req, rep) => {
     try {
+
+      let cachedLatestList = await redis.get("latest");
+      if(cachedLatestList) {
+        rep.status(200).send(JSON.parse(cachedLatestList));
+        return;
+      }
       const latestList = await prisma.latest.findMany({
         orderBy: { timestamp: "desc" },
         include: { anime: true },
@@ -81,7 +87,8 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
         timestamp: timestamp.getTime(),
         ...remains,
       }));
-
+      await redis.set("latest", JSON.stringify(mapedLatestList));
+      await redis.expireAt("latest", Date.now() + 3600000);
       rep.status(200).send(mapedLatestList);
     } catch (err) {
       console.error("Failed to fetch latest animes:", err);
