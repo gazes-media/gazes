@@ -40,3 +40,12 @@ export const EpisodeParamsSchema = {
       ep: {type: "number"}
   }
 }
+
+export interface Latest {
+  timestamp: number,
+  episode: string,
+  lang: string,
+  url: string,
+  anime_url: string,
+}
+  
