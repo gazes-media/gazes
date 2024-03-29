@@ -2,11 +2,7 @@ import Fastify from "fastify";
 import { app } from "./app/app";
 import { PrismaClient } from "@prisma/client";
 import { createClient } from "redis";
-
-export const PROXY_URL = 'https://proxy.ketsuna.com?url='
-
-const host = process.env.HOST ?? "localhost";
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+import { config } from "./config";
 
 export const server = Fastify({
   logger: false,
@@ -25,20 +21,25 @@ async function main() {
   await prisma.$connect();
   await redis.connect();
 
-  redis.flushDb()
+  if (process.env.NODE_ENV === 'development') {
+    redis.flushDb();
+  }
 
   // Register your application as a normal plugin.
   server.register((fastify, opts) => app(fastify, { prisma, redis, ...opts }));
 
   // Start listening.
-  server.listen({ port, host }, (err) => {
-    if (err) {
-      server.log.error(err);
-      process.exit(1);
-    }
+  server.listen({port: config.PORT, host: config.HOST}, (err) => {
+      if (err) {
+        server.log.error(err);
+        process.exit(1);
+      }
 
-    console.log(`[ ready ] http://${host}:${port}`);
-  });
+      server.log.info(`[ ready ] http://${config.HOST}:${config.PORT}`);
+    }
+  );
 }
 
-main()
+main().finally(() => {
+  console.log("test")
+});

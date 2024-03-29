@@ -1,6 +1,7 @@
 import { Anime, Episode, PrismaClient } from "@prisma/client";
 import he from "he";
-import { PROXY_URL, RedisClient, server } from "../../main";
+import { config } from "config";
+import { RedisClient, server } from "main";
 
 async function fetchText(url: string): Promise<string> {
   try {
@@ -121,13 +122,13 @@ export async function getEpisodeVideo(episode: Episode, vf: boolean = false) {
   const playerUrl = episodeHtml.match(/video\[0\] = '([^']*)';/)?.[1];
   if (!playerUrl) return undefined;
 
-  const playerHtml = await fetch(PROXY_URL + encodeURIComponent(playerUrl)).then((res) => res.text());
+  const playerHtml = await fetch(config.PROXY_URL + encodeURIComponent(playerUrl)).then((res) => res.text());
   if (!playerHtml || playerHtml === "") return undefined;
 
   const scriptUrl = playerHtml.match(/src="(https?:\/\/[^"]*\/f\/u\/u[^"]*)"/)?.[1];
   if (!scriptUrl) return undefined;
 
-  const scriptJs = await fetch(PROXY_URL + encodeURIComponent(scriptUrl)).then((res) => res.text());
+  const scriptJs = await fetch(config + encodeURIComponent(scriptUrl)).then((res) => res.text());
   if (!scriptJs) return undefined;
 
   const videoObjectEncoded = scriptJs.match(/atob\("([^"]+)"/)?.[1];
@@ -137,5 +138,5 @@ export async function getEpisodeVideo(episode: Episode, vf: boolean = false) {
   const videoUrl = videoObject.match(/"ezofpjbzoiefhzofsdhvuzehfg"\s*:\s*"([^"]+)"/)?.[1];
 
   if (!videoUrl) return undefined;
-  return PROXY_URL + encodeURIComponent(videoUrl.replace(/\\/g, ""));
+  return config.PROXY_URL + encodeURIComponent(videoUrl.replace(/\\/g, ""));
 }
