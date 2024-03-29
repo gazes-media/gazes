@@ -5,6 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import { AppOptions } from "@api/main";
 import { config } from "@api/config";
 import { Latest } from "@api/contracts/animesContract";
+import { fetchType } from "./utils/fetchUtils";
 
 export async function app(fastify: FastifyInstance, opts: AppOptions) {
   updateAnimeDatabase(opts.prisma);
@@ -22,25 +23,31 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
 }
 
 async function updateAnimeDatabase(prisma: PrismaClient) {
-  const animeList = (await fetch(config.NEKO_JSON_URL).then((res) => res.json())) as any[];
+
+  const animeList: any[] = await fetchType(config.NEKO_JSON_URL, "json");
 
   await prisma.anime.createMany({
     data: animeList.map((a) => ({ ...a, nb_eps: parseInt(a.nb_eps.split(" ")[0]) })),
     skipDuplicates: true,
   });
 
-  const data = await fetch(config.NEKO_URL).then((res) => res.text());
-    const parsedData = /var lastEpisodes = (.+)\;/gm.exec(data);
-    let latestEpisodes: Latest[] = [];
-    if (parsedData) latestEpisodes = JSON.parse(parsedData[1]);
+  const data: string = await fetchType(config.NEKO_URL, "text");
+  
+  const parsedData = data.match(/var lastEpisodes = (.+)\;/)?.[1];
+  if (!parsedData) return;
+
+  const latestEpisodes = JSON.parse(parsedData) as Latest[];
+
   await prisma.latest.createMany({
-    data: latestEpisodes.map((d) => ({
-      timestamp: new Date(d.timestamp),
-      episode: d.episode,
-      lang: d.lang,
-      anime_url: d.url,
-      animeId: parseInt(d.anime_url.match(new RegExp(/\/(\d+)/, "i"))?.[1]),
+    data: latestEpisodes.map((episode) => ({
+      timestamp: new Date(episode.timestamp),
+      episode: episode.episode,
+      lang: episode.lang,
+      anime_url: episode.url,
+      animeId: parseInt(episode.anime_url.match(/\/(\d+)/i)?.[1]),
     })),
+
     skipDuplicates: true,
-  })
+  });
+
 }
