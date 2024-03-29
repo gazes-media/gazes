@@ -1,7 +1,7 @@
 import * as path from "path";
 import { FastifyInstance } from "fastify";
 import AutoLoad from "@fastify/autoload";
-import { PrismaClient } from "@prisma/client";
+import { Anime, PrismaClient } from "@prisma/client";
 import { AppOptions } from "@api/main";
 import { config } from "@api/config";
 import { Latest } from "@api/contracts/animesContract";
@@ -24,23 +24,32 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
 
 async function updateAnimeDatabase(prisma: PrismaClient) {
 
-  const animeList: any[] = await fetchType(config.NEKO_JSON_URL, "json");
+  // Fetch the list of animes
+  const animeList = await fetchType(config.NEKO_JSON_URL, "json");
+  if (!Array.isArray(animeList)) throw new Error('Failed to fetch or parse anime list.')
+
+  // Prepare anime data and update the database
+  const animeData = animeList.map(anime => ({
+    ...anime,
+    nb_eps: parseInt(anime.nb_eps.split(" ")[0])
+  }));
 
   await prisma.anime.createMany({
-    data: animeList.map((a) => ({ ...a, nb_eps: parseInt(a.nb_eps.split(" ")[0]) })),
+    data: animeData,
     skipDuplicates: true,
   });
 
-  const data: string = await fetchType(config.NEKO_URL, "text");
-  
-  const parsedData = data.match(/var lastEpisodes = (.+)\;/)?.[1];
-  if (!parsedData) return;
+  // Fetch the latest episodes data
+  const latestEpisodesData = await fetchType<string>(config.NEKO_URL, "text");
+  const parsedLatestEpisodeData = latestEpisodesData.match(/var lastEpisodes = (.+)\;/)?.[1];
+  if (!parsedLatestEpisodeData) throw new Error('Failed to fetch or parse latest episode data.')
 
-  const latestEpisodes = JSON.parse(parsedData) as Latest[];
+  const latestEpisodes: Latest[] = JSON.parse(parsedLatestEpisodeData);
 
+  // Prepare latest episodes data and update the database
   await prisma.latest.createMany({
     data: latestEpisodes.map((episode) => ({
-      timestamp: new Date(episode.timestamp),
+      timestamp: new Date(episode.timestamp * 1000),
       episode: episode.episode,
       lang: episode.lang,
       anime_url: episode.url,
