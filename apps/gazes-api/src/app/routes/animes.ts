@@ -66,20 +66,20 @@ export default async function (fastify: FastifyInstance, {redis, prisma}: AppOpt
         return;
       }
 
-      const anime = await getAnimeById(prisma, redis, id);
+      const {episodes, ...anime} = await getAnimeById(prisma, redis, id);
 
       if (!anime) {
         rep.status(404).send("Anime Not Found");
         return;
       }
 
-      if (ep > anime.episodes.length) {
+      if (ep > episodes.length) {
         rep.status(404).send("Episode Not Found");
         return;
       }
 
       const episodeKey = `episode:${id}:${ep}`;
-      const episode = anime.episodes.at(ep - 1);
+      const episode = episodes.at(ep - 1);
 
       let cachedEpisode = await redis.get(episodeKey);
 
