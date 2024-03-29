@@ -27,9 +27,9 @@ export default async function (fastify: FastifyInstance, {redis, prisma}: AppOpt
       };
 
       if (title) findManyObject["where"]["others"] = {"search": title.split(" ").join(" & ")};
-      if (genres) findManyObject["where"]["Genres"] = {"hasEvery": genres.split(",")};
-      if (status) findManyObject["where"]["Status"] = {"equals": status.toString()};
-      if (releaseDate) findManyObject["where"]["StartDateYear"] = {"equals": releaseDate.toString()};
+      if (genres) findManyObject["where"]["genres"] = {"hasEvery": genres.split(",")};
+      if (status) findManyObject["where"]["status"] = {"equals": status.toString()};
+      if (releaseDate) findManyObject["where"]["start_date_year"] = {"equals": releaseDate.toString()};
 
       console.log(findManyObject)
 
