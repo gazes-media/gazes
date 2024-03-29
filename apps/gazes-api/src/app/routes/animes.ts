@@ -52,6 +52,28 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
   });
 
   /**
+   * @fileoverview This handler retrieves the latest episodes of animes from the database.
+   * 
+   * The route defined by this handler is part of the Anime listing API, allowing clients to query for the latest episodes
+   * of animes stored in the database. The latest episodes are stored in a separate table in the database, which is updated
+   * periodically by fetching the latest episodes from an external source. This handler simply retrieves the latest episodes
+   * from the database and sends them back to the client.
+   * 
+   * Responses:
+   * - 200 OK: Successfully retrieved the list of latest episodes. The response body contains an array of latest episode objects.
+   * - 500 Internal Server Error: An error occurred on the server while processing the request.
+   * 
+   */
+  fastify.get("/animes/latest", async (req, rep) => {
+    const latest = await prisma.latest.findMany({
+      orderBy: { timestamp: "desc" },
+      include: { anime: true },
+    });
+
+    rep.status(200).send(latest.map(({ timestamp, id, animeId, anime_url, ...rest }) => ({ timestamp: Date.parse(timestamp.toUTCString()),...rest })));
+  })
+
+  /**
    * @fileoverview This handler retrieves detailed information for a specified anime identified by its unique ID.
    * 
    * The route defined by this handler is part of the Anime details API, enabling client to query detailed information
