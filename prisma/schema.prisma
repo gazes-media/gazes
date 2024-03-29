@@ -19,14 +19,33 @@ model Anime {
   title String
   title_english String?
   title_romanji String?
+  title_french String?
   others String?
-  Type String
-  Status String
-  Popularity Float
-  Url String
-  Genres String[]
-  UrlImage String
-  Score String
-  StartDateYear String
-  NbEps Int?
+  type String
+  status String
+  popularity Float
+  url String
+  genres String[]
+  url_image String
+  score String
+  start_date_year String
+  nb_eps Int?
+
+  synopsis String?
+  cover_url String?
+
+  episodes Episode[]
+}
+
+model Episode {
+  id Int @id @default(autoincrement())
+
+  time String
+  episode String 
+  num Int
+  url String @unique
+  url_image String
+
+  anime Anime @relation(fields: [animeId], references: [id])
+  animeId Int
 }

@@ -1,4 +1,5 @@
 services:
+
   db:
     image: postgres:alpine
     restart: always
@@ -8,3 +9,8 @@ services:
       POSTGRES_DB: mydb
     ports:
       - "5432:5432"
+
+  redis:
+    image: 'redislabs/redismod'
+    ports:
+      - '6379:6379'
