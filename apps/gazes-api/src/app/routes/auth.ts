@@ -4,6 +4,7 @@ import argon2 from "argon2";
 import { RegisterBody, LoginBody, LoginBodySchema, RegisterBodySchema } from "@api/contracts/authContract";
 import { signJWT } from "../utils/jwtUtils";
 import { config } from "@api/config";
+
 export default async function (fastify: FastifyInstance, { redis, prisma }: AppOptions) {
     
     /**
@@ -25,7 +26,9 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
     fastify.post<{ Body: RegisterBody }>("/register", {
         schema: { body: RegisterBodySchema }
     }, async function (req, rep) {
+
         try {
+            
             const {email, username, password} = req.body;
             const hashedPassword = await argon2.hash(password);
 
@@ -43,14 +46,17 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
 
             const token = signJWT({id: newUser.id}, config.JWT_SECRET);
             rep.header("Set-Cookie", `token=${token}; HttpOnly; Path=/; Secure; SameSite=Strict`);
+            rep.status(201).send(newUser);
 
-            return rep.status(201).send(newUser);
         } catch (e) {
+
             if (e.code === 'P2002') {
-                return rep.status(400).send('User already exists');
+                rep.status(400).send('User already exists');
+                return
             }
 
-            return rep.status(500).send("An unexpected error occured");
+            rep.status(500).send("An unexpected error occured");
+
         }
 
     });
@@ -72,23 +78,35 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
      * - 400: Invalid Credentials
      * 
      */
-    fastify.post<{ Body: LoginBody }>("/login", { schema: { body: LoginBodySchema } }, async function (req, rep) {
+    fastify.post<{ Body: LoginBody }>("/login", { 
+        schema: { body: LoginBodySchema } 
+    }, async function (req, rep) {
+
         try {
+
             const { email, password } = req.body;
-            const { password: pass, id, discord_id, firebase_id, updated_at, created_at, email: mail, ...user } = await prisma.user.findUnique({
-                where: {
-                    email,
-                },
+            
+            const userWithPassword = await prisma.user.findUnique({
+                where: { email },
+                select: { id: true, username: true, password: true }
             });
-            if (!user || !(await argon2.verify(pass, password))) {
-                return rep.status(401).send("Invalid Credentials");
+
+            if (!userWithPassword || !(await argon2.verify(userWithPassword.password, password))) {
+                rep.status(401).send("Invalid Credentials");
+                return
             }
-            return rep.header("Set-Cookie", signJWT({
-                id: id
-            }, "test")).status(200).send(user);
+
+            const {password: _, ...userWithoutPassword} = userWithPassword
+
+            const token = signJWT({id: userWithoutPassword.id}, config.JWT_SECRET);
+            rep.header("Set-Cookie", `token=${token}; HttpOnly; Path=/; Secure; SameSite=Strict`);
+            rep.status(200).send(userWithoutPassword);
+            
         } catch (e) {
-            console.log(e);
-            return rep.status(400).send("Invalid Credentials");
+
+            console.error(e);
+            rep.status(500).send("An unexpected error occured");
+
         }
 
     });
