@@ -30,33 +30,31 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
    * - 400 Bad Request: The request was malformed. This can happen if the query parameters are not in the expected format.
    * - 500 Internal Server Error: An error occurred on the server while processing the request.
    */
-  fastify.get<{ Querystring: AnimeListQuerystring }>(
-    "/animes",
-    {
-      schema: { querystring: AnimeListQuerystringSchema },
-    },
-    async (req, rep) => {
-      // Extract query parameters with default values
-      const { page = 1, title, genres, status, releaseDate } = req.query;
+  fastify.get<{ Querystring: AnimeListQuerystring }>("/animes", {
+    schema: { querystring: AnimeListQuerystringSchema },
+  }, async (req, rep) => {
+     
+    // Extract query parameters with default values
+    const { page = 1, title, genres, status, releaseDate } = req.query;
 
-      // Prepare the Prisma findMany query object with pagination and conditional filters
-      let queryOptions = {
-        skip: 25 * (page - 1), // Calculate offset for pagination
-        take: 25, // Limit the number of returned items to 25 for pagination
-        where: {},
-      };
+    // Prepare the Prisma findMany query object with pagination and conditional filters
+    let queryOptions = {
+      skip: 25 * (page - 1), // Calculate offset for pagination
+      take: 25, // Limit the number of returned items to 25 for pagination
+      where: {},
+    };
 
-      // Conditional filters based on the query parameters provided by the client
-      if (title) queryOptions["where"]["others"] = { search: title.split(" ").join(" & ") };
-      if (genres) queryOptions["where"]["genres"] = { hasEvery: genres.split(",") };
-      if (status) queryOptions["where"]["status"] = { equals: status.toString() };
-      if (releaseDate) queryOptions["where"]["start_date_year"] = { equals: releaseDate.toString() };
+    // Conditional filters based on the query parameters provided by the client
+    if (title) queryOptions["where"]["others"] = { search: title.split(" ").join(" & ") };
+    if (genres) queryOptions["where"]["genres"] = { hasEvery: genres.split(",") };
+    if (status) queryOptions["where"]["status"] = { equals: status.toString() };
+    if (releaseDate) queryOptions["where"]["start_date_year"] = { equals: releaseDate.toString() };
 
-      // Execute the query using the Prisma client and send the result back to the client
-      const animeList = await prisma.anime.findMany(queryOptions);
-      rep.status(200).send(animeList);
-    }
-  );
+    // Execute the query using the Prisma client and send the result back to the client
+    const animeList = await prisma.anime.findMany(queryOptions);
+    rep.status(200).send(animeList);
+
+  });
 
   /**
    * @fileoverview This handler retrieves the latest episodes of animes from the database.
@@ -70,14 +68,17 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
    * - 200 OK: Successfully retrieved the list of latest episodes. The response body contains an array of latest episode objects.
    * - 500 Internal Server Error: An error occurred on the server while processing the request.
    */
-  fastify.get("/animes/latest", async (req, rep) => {
+  fastify.get("/animes/latests", async (req, rep) => {
+
     try {
 
-      let cachedLatestList = await redis.get("latest");
+      let cachedLatestList = await redis.get("latests");
+
       if(cachedLatestList) {
         rep.status(200).send(JSON.parse(cachedLatestList));
         return;
       }
+
       const latestList = await prisma.latest.findMany({
         orderBy: { timestamp: "desc" },
         include: { anime: true },
@@ -87,12 +88,17 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
         timestamp: timestamp.getTime(),
         ...remains,
       }));
-      await redis.set("latest", JSON.stringify(mapedLatestList));
-      await redis.expireAt("latest", Date.now() + 3600000);
+
+      await redis.set("latests", JSON.stringify(mapedLatestList));
+      await redis.expireAt("latests", Date.now() + 3600000);
+
       rep.status(200).send(mapedLatestList);
+
     } catch (err) {
+
       console.error("Failed to fetch latest animes:", err);
       rep.status(500).send({ error: "Internal Server Error" });
+    
     }
   });
 
@@ -115,25 +121,25 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
    * - 500 Internal Server Error: An error occurered on the server while processing the request. This indicates an unexpected
    * issue that prevented the server from fulfilling the request.
    */
-  fastify.get<{ Params: AnimeDetailParams }>(
-    "/animes/:id",
-    {
-      schema: { params: AnimeDetailParamsSchema },
-    },
-    async (req, rep) => {
-      // Attempt to retrieve the anime details using the provided ID
-      const anime = await getAnimeById(prisma, redis, req.params.id);
+  fastify.get<{ Params: AnimeDetailParams }>("/animes/:id", {
+    schema: { params: AnimeDetailParamsSchema },
+  }, async (req, rep) => {
 
-      // Check if the anime was found and respond accordingly
-      if (!anime) {
-        rep.status(404).send("Anime Not Found");
-        return;
-      }
+    // Attempt to retrieve the anime details using the provided ID
+    const anime = await getAnimeById(prisma, redis, req.params.id);
 
-      // Respond with the found anime details
-      rep.status(200).send(anime);
+    // Check if the anime was found and respond accordingly
+    if (!anime) {
+
+      rep.status(404).send("Anime Not Found");
+      return;
+      
     }
-  );
+
+    // Respond with the found anime details
+    rep.status(200).send(anime);
+
+  });
 
   fastify.get<{ Params: EpisodeParams }>(
     "/animes/:id/:ep",
