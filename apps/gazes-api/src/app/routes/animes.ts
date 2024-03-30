@@ -11,34 +11,40 @@ import type { AppOptions } from "@api/main";
 import type { FastifyInstance } from "fastify";
 import { AnimeService } from "../services/animeService";
 
-/**
- * Initializes anime listing and detail routes.
- */
 export default async function (fastify: FastifyInstance, { redis, prisma }: AppOptions) {
 	const animeService = new AnimeService(prisma, redis);
 
-	/**
-	 * Route serving a paginated list of animes with optional filtering.
-	 */
+	// Route handler for fetching a paginated list of animes with optional filtering based on query parameters.
 	fastify.get<{ Querystring: AnimeListQuerystring }>("/animes", { schema: { querystring: AnimeListQuerystringSchema } }, async (req, rep) => {
 		const { page = 1, title, genres, status, releaseDate } = req.query;
+
+		// Attempt to fetch from cache first
+		const cacheKey = `animeList:${page}:${title}:${genres}:${status}:${releaseDate}`;
+		const cachedResult = await redis.get(cacheKey);
+		if (cachedResult) {
+			return rep.status(200).send(JSON.parse(cachedResult));
+		}
+
+		// Define query options for Prisma query, including pagination and filters.
 		const queryOptions: Prisma.AnimeFindManyArgs = {
 			skip: 25 * (page - 1),
 			take: 25,
 			where: {
-				others: title && {search: title.split(" ").join(" & ")},
-				genres: genres && {hasEvery: genres.split(",")},
-				status: status && {equals: status.toString()},
-				start_date_year: releaseDate && {equals: releaseDate.toString()}
+				others: title ? { search: title.split(" ").join(" & ") } : undefined,
+				genres: genres ? { hasEvery: genres.split(",") } : undefined,
+				status: status ? { equals: status.toString() } : undefined,
+				start_date_year: releaseDate ? { equals: releaseDate.toString() } : undefined,
 			},
-			include: {episodes: true}
 		};
 
 		let animeList = await prisma.anime.findMany(queryOptions);
+		await redis.setEx(cacheKey, 3600, JSON.stringify(animeList));
 
-		if (animeList.some(anime => !anime.synopsis)) {
-			const detailedAnimePromises = animeList.filter(anime => !anime.synopsis).map(anime => animeService.getAnimeById(anime.id))
-			animeList = await Promise.all(detailedAnimePromises)
+		// Check if any anime in the list lacks a synopsis and fetch detailed information for those.
+		const needsDetail = animeList.filter((anime) => !anime.synopsis);
+		if (needsDetail.length > 0) {
+			const detailedAnimePromises = needsDetail.map((anime) => animeService.getAnimeById(anime.id));
+			animeList = await Promise.all(detailedAnimePromises);
 		}
 
 		rep.status(200).send(animeList);
