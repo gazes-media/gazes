@@ -1,17 +1,16 @@
-import { JWTToken } from "@api/contracts/authContract";
-import crypto from "crypto";
+import { JWTToken } from '@api/contracts/authContract';
+import crypto from 'crypto';
 
-const toBase64 = obj => {
+const toBase64 = (obj) => {
     // converts the obj to a string
     const str = JSON.stringify(obj);
     // returns string converted to base64
     return Buffer.from(str).toString('base64');
 };
 
-
 const replaceSpecialChars = (b64string: string): string => {
     // create a regex to match any of the characters =,+ or / and replace them with their // substitutes
-    return b64string.replace(/[=+/]/g, charToBeReplaced => {
+    return b64string.replace(/[=+/]/g, (charToBeReplaced) => {
         switch (charToBeReplaced) {
             case '=':
                 return '';
@@ -29,8 +28,8 @@ const createSignature = (jwtB64Header: string, jwtB64Payload: string, secret: st
     // create a HMAC(hash based message authentication code) using sha256 hashing alg
     let signature = crypto.createHmac('sha256', secret);
 
-    // use the update method to hash a string formed from our jwtB64Header a period and 
-    //jwtB64Payload 
+    // use the update method to hash a string formed from our jwtB64Header a period and
+    //jwtB64Payload
     signature.update(jwtB64Header + '.' + jwtB64Payload);
 
     //signature needs to be converted to base64 to make it usable
@@ -39,15 +38,13 @@ const createSignature = (jwtB64Header: string, jwtB64Payload: string, secret: st
     //of course we need to clean the base64 string of URL special characters
     signed = replaceSpecialChars(signed);
     return signed;
-}
-
-
-export function signJWT(payload: JWTToken,secret: string): string {
-    
-const header = {
-    alg: 'HS256',
-    typ: 'JWT',
 };
+
+export function signJWT(payload: JWTToken, secret: string): string {
+    const header = {
+        alg: 'HS256',
+        typ: 'JWT',
+    };
 
     // convert the header to a base64 string
     const b64Header = replaceSpecialChars(toBase64(header));

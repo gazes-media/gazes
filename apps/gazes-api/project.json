@@ -1,61 +1,61 @@
 {
-  "name": "gazes-api",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/gazes-api/src",
-  "projectType": "application",
-  "targets": {
-    "build": {
-      "executor": "@nx/esbuild:esbuild",
-      "outputs": ["{options.outputPath}"],
-      "defaultConfiguration": "production",
-      "options": {
-        "platform": "node",
-        "outputPath": "dist/apps/gazes-api",
-        "format": ["cjs"],
-        "bundle": false,
-        "main": "apps/gazes-api/src/main.ts",
-        "tsConfig": "apps/gazes-api/tsconfig.app.json",
-        "assets": ["apps/gazes-api/src/assets"],
-        "generatePackageJson": true,
-        "esbuildOptions": {
-          "sourcemap": true,
-          "outExtension": {
-            ".js": ".js"
-          }
-        }
-      },
-      "configurations": {
-        "development": {},
-        "production": {
-          "generateLockfile": true,
-          "esbuildOptions": {
-            "sourcemap": false,
-            "outExtension": {
-              ".js": ".js"
+    "name": "gazes-api",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/gazes-api/src",
+    "projectType": "application",
+    "targets": {
+        "build": {
+            "executor": "@nx/esbuild:esbuild",
+            "outputs": ["{options.outputPath}"],
+            "defaultConfiguration": "production",
+            "options": {
+                "platform": "node",
+                "outputPath": "dist/apps/gazes-api",
+                "format": ["cjs"],
+                "bundle": false,
+                "main": "apps/gazes-api/src/main.ts",
+                "tsConfig": "apps/gazes-api/tsconfig.app.json",
+                "assets": ["apps/gazes-api/src/assets"],
+                "generatePackageJson": true,
+                "esbuildOptions": {
+                    "sourcemap": true,
+                    "outExtension": {
+                        ".js": ".js"
+                    }
+                }
+            },
+            "configurations": {
+                "development": {},
+                "production": {
+                    "generateLockfile": true,
+                    "esbuildOptions": {
+                        "sourcemap": false,
+                        "outExtension": {
+                            ".js": ".js"
+                        }
+                    }
+                }
             }
-          }
-        }
-      }
-    },
-    "serve": {
-      "executor": "@nx/js:node",
-      "defaultConfiguration": "development",
-      "options": {
-        "buildTarget": "gazes-api:build"
-      },
-      "configurations": {
-        "development": {
-          "buildTarget": "gazes-api:build:development"
         },
-        "production": {
-          "buildTarget": "gazes-api:build:production"
+        "serve": {
+            "executor": "@nx/js:node",
+            "defaultConfiguration": "development",
+            "options": {
+                "buildTarget": "gazes-api:build"
+            },
+            "configurations": {
+                "development": {
+                    "buildTarget": "gazes-api:build:development"
+                },
+                "production": {
+                    "buildTarget": "gazes-api:build:production"
+                }
+            }
+        },
+        "docker-build": {
+            "dependsOn": ["build"],
+            "command": "docker build -f apps/gazes-api/Dockerfile . -t gazes-api"
         }
-      }
     },
-    "docker-build": {
-      "dependsOn": ["build"],
-      "command": "docker build -f apps/gazes-api/Dockerfile . -t gazes-api"
-    }
-  },
-  "tags": []
+    "tags": []
 }

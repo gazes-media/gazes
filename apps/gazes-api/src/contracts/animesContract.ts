@@ -1,51 +1,50 @@
 export interface AnimeListQuerystring {
-  page?: number;
-  title?: string;
-  genres?: string;
-  status?: number;
-  releaseDate?: number;
+    page?: number;
+    title?: string;
+    genres?: string;
+    status?: number;
+    releaseDate?: number;
 }
 
 export const AnimeListQuerystringSchema = {
-  type: "object",
-  properties: {
-    page: { type: ["number", "null"] },
-    title: { type: ["string", "null"] },
-    genres: { type: ["string", "null"] },
-    status: { type: ["number", "null"] },
-    releaseDate: { type: ["number", "null"] },
-  },
+    type: 'object',
+    properties: {
+        page: { type: ['number', 'null'] },
+        title: { type: ['string', 'null'] },
+        genres: { type: ['string', 'null'] },
+        status: { type: ['number', 'null'] },
+        releaseDate: { type: ['number', 'null'] },
+    },
 };
 
 export interface AnimeDetailParams {
-    id: number
+    id: number;
 }
 
 export const AnimeDetailParamsSchema = {
-    type: "object",
+    type: 'object',
     properties: {
-        id: {type: "number"}
-    }
-}
+        id: { type: 'number' },
+    },
+};
 
 export interface EpisodeParams {
-  id: number
-  ep: number
+    id: number;
+    ep: number;
 }
 
 export const EpisodeParamsSchema = {
-  type: "object",
-  properties: {
-      id: {type: "number"},
-      ep: {type: "number"}
-  }
-}
+    type: 'object',
+    properties: {
+        id: { type: 'number' },
+        ep: { type: 'number' },
+    },
+};
 
 export interface Latest {
-  timestamp: number,
-  episode: string,
-  lang: string,
-  url: string,
-  anime_url: string,
+    timestamp: number;
+    episode: string;
+    lang: string;
+    url: string;
+    anime_url: string;
 }
-  

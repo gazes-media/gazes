@@ -5,27 +5,27 @@ type Config = {
     HOST: string;
     PORT: number;
     JWT_SECRET: string;
-}
+};
 
-const requiredConfigs: (keyof Config)[] = ['HOST', 'JWT_SECRET', 'NEKO_JSON_URL', 'NEKO_URL', 'PORT', 'PROXY_URL']
+const requiredConfigs: (keyof Config)[] = ['HOST', 'JWT_SECRET', 'NEKO_JSON_URL', 'NEKO_URL', 'PORT', 'PROXY_URL'];
 
 export let config: Partial<Config> = {};
 let missingConfigs: string[] = [];
 
 for (const key of requiredConfigs) {
     const value = process.env[key];
-    
+
     if (!value) {
-        missingConfigs.push(key)
-        continue
+        missingConfigs.push(key);
+        continue;
     }
 
     if (key === 'PORT') {
-        config[key] = parseInt(value, 10)
-        continue
+        config[key] = parseInt(value, 10);
+        continue;
     }
 
-    config[key] = value
+    config[key] = value;
 }
 
 if (missingConfigs.length > 0) {
