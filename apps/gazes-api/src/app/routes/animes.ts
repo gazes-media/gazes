@@ -31,9 +31,16 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
 				status: status && {equals: status.toString()},
 				start_date_year: releaseDate && {equals: releaseDate.toString()}
 			},
+			include: {episodes: true}
 		};
 
-		const animeList = await prisma.anime.findMany(queryOptions);
+		let animeList = await prisma.anime.findMany(queryOptions);
+
+		if (animeList.some(anime => !anime.synopsis)) {
+			const detailedAnimePromises = animeList.filter(anime => !anime.synopsis).map(anime => animeService.getAnimeById(anime.id))
+			animeList = await Promise.all(detailedAnimePromises)
+		}
+
 		rep.status(200).send(animeList);
 	});
 
