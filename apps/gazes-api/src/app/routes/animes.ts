@@ -12,19 +12,12 @@ import { AnimeService } from "../services/animeService";
 
 /**
  * Initializes anime listing and detail routes.
- *
- * @param {FastifyInstance} fastify - The Fastify instance.
- * @param {AppOptions} options - The application options including Redis and Prisma clients.
  */
 export default async function (fastify: FastifyInstance, { redis, prisma }: AppOptions) {
 	const animeService = new AnimeService(prisma, redis);
 
 	/**
 	 * Route serving a paginated list of animes with optional filtering.
-	 *
-	 * @route GET /animes
-	 * @param {AnimeListQuerystring} req.query - Filters for the anime list.
-	 * @returns {void}
 	 */
 	fastify.get<{ Querystring: AnimeListQuerystring }>("/animes", { schema: { querystring: AnimeListQuerystringSchema } }, async (req, rep) => {
 		const { page = 1, title, genres, status, releaseDate } = req.query;
@@ -48,9 +41,6 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
 
 	/**
 	 * Route serving the latest episodes of animes.
-	 *
-	 * @route GET /animes/latests
-	 * @returns {void}
 	 */
 	fastify.get("/animes/latests", async (req, rep) => {
 		try {
@@ -83,10 +73,6 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
 
 	/**
 	 * Route retrieving detailed information for a specified anime by ID.
-	 *
-	 * @route GET /animes/:id
-	 * @param {AnimeDetailParams} req.params - The ID of the anime.
-	 * @returns {void}
 	 */
 	fastify.get<{ Params: AnimeDetailParams }>("/animes/:id", { schema: { params: AnimeDetailParamsSchema } }, async (req, rep) => {
 		const anime = await animeService.getAnimeById(req.params.id);
@@ -101,10 +87,6 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
 
 	/**
 	 * Route for retrieving video links for a specific anime episode.
-	 *
-	 * @route GET /animes/:id/:ep
-	 * @param {EpisodeParams} req.params - The ID of the anime and the episode number.
-	 * @returns {void}
 	 */
 	fastify.get<{ Params: EpisodeParams }>("/animes/:id/:ep", { schema: { params: EpisodeParamsSchema } }, async (req, rep) => {
 		const { id, ep } = req.params;
