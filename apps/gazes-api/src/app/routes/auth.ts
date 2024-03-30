@@ -3,6 +3,7 @@ import { AppOptions } from "@api/main";
 import argon2 from "argon2";
 import { RegisterBody, LoginBody, LoginBodySchema, RegisterBodySchema } from "@api/contracts/authContract";
 import { signJWT } from "../utils/jwtUtils";
+import { config } from "@api/config";
 export default async function (fastify: FastifyInstance, { redis, prisma }: AppOptions) {
     
     /**
@@ -25,22 +26,31 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
         schema: { body: RegisterBodySchema }
     }, async function (req, rep) {
         try {
-            const { username, password, email } = req.body;
+            const {email, username, password} = req.body;
             const hashedPassword = await argon2.hash(password);
-            const { password: pass, id, discord_id, firebase_id, updated_at, created_at, email: mail, ...user } = await prisma.user.create({
+
+            const newUser = await prisma.user.create({
                 data: {
                     email,
                     username,
-                    password: hashedPassword,
+                    password: hashedPassword
                 },
+                select: {
+                    id: true,
+                    username: true
+                }
             });
 
-            return rep.header("Set-Cookie", signJWT({
-                id: id
-            }, "test")).status(201).send(user);
+            const token = signJWT({id: newUser.id}, config.JWT_SECRET);
+            rep.header("Set-Cookie", `token=${token}; HttpOnly; Path=/; Secure; SameSite=Strict`);
+
+            return rep.status(201).send(newUser);
         } catch (e) {
-            console.log(e);
-            return rep.status(400).send("User already exists");
+            if (e.code === 'P2002') {
+                return rep.status(400).send('User already exists');
+            }
+
+            return rep.status(500).send("An unexpected error occured");
         }
 
     });
