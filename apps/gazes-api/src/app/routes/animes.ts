@@ -1,13 +1,14 @@
+import type { Prisma } from ".prisma/client";
 import {
-	type AnimeListQuerystring,
-	AnimeListQuerystringSchema,
-	type AnimeDetailParams,
 	AnimeDetailParamsSchema,
-	type EpisodeParams,
+	AnimeListQuerystringSchema,
 	EpisodeParamsSchema,
+	type AnimeDetailParams,
+	type AnimeListQuerystring,
+	type EpisodeParams,
 } from "@api/contracts/animesContract";
-import type { FastifyInstance } from "fastify";
 import type { AppOptions } from "@api/main";
+import type { FastifyInstance } from "fastify";
 import { AnimeService } from "../services/animeService";
 
 /**
@@ -21,19 +22,16 @@ export default async function (fastify: FastifyInstance, { redis, prisma }: AppO
 	 */
 	fastify.get<{ Querystring: AnimeListQuerystring }>("/animes", { schema: { querystring: AnimeListQuerystringSchema } }, async (req, rep) => {
 		const { page = 1, title, genres, status, releaseDate } = req.query;
-		const queryOptions = {
+		const queryOptions: Prisma.AnimeFindManyArgs = {
 			skip: 25 * (page - 1),
 			take: 25,
-			where: {},
+			where: {
+				others: title && {search: title.split(" ").join(" & ")},
+				genres: genres && {hasEvery: genres.split(",")},
+				status: status && {equals: status.toString()},
+				start_date_year: releaseDate && {equals: releaseDate.toString()}
+			},
 		};
-
-		if (title) queryOptions.where["others"] = { search: title.split(" ").join(" & ") };
-		if (genres) queryOptions.where["genres"] = { hasEvery: genres.split(",") };
-		if (status) queryOptions.where["status"] = { equals: status.toString() };
-		if (releaseDate)
-			queryOptions.where["start_date_year"] = {
-				equals: releaseDate.toString(),
-			};
 
 		const animeList = await prisma.anime.findMany(queryOptions);
 		rep.status(200).send(animeList);
