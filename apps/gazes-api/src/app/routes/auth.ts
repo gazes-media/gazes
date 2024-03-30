@@ -9,7 +9,7 @@ import { UserService } from "../services/userService";
  * @param {FastifyInstance} fastify - The Fastify instance.
  * @param {AppOptions} options - The application options including Prisma clients.
  */
-export default function (fastify: FastifyInstance, { prisma }: AppOptions) {
+export default async function (fastify: FastifyInstance, { prisma }: AppOptions) {
 	const userService = new UserService(prisma);
 
 	/**
