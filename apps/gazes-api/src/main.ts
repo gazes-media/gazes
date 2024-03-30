@@ -1,46 +1,49 @@
-import { app } from "@api/app/app";
-import { config } from "@api/config";
 import { PrismaClient } from "@prisma/client";
-import Fastify from "fastify";
-import { createClient } from "redis";
+import fastify from "fastify";
+import { type RedisClientType, createClient } from "redis";
+import { app } from "./app/app";
+import { getEnv } from "./config";
 
-export const server = Fastify({
-	logger: false,
-});
-
-const prisma = new PrismaClient();
-const redis = createClient();
-
-export type RedisClient = typeof redis;
 export interface AppOptions {
-	prisma: PrismaClient;
-	redis: RedisClient;
+	prismaClient: PrismaClient;
+	redisClient: RedisClientType;
 }
 
 async function main() {
-	await redis.connect();
+	const prismaClient = new PrismaClient();
+	const redisClient = await connectToRedis();
 
-	if (process.env.NODE_ENV === "development") {
-		redis.flushDb();
-	}
+	const port = Number(getEnv("PORT"));
+	const host = getEnv("HOST");
 
-	// Register your application as a normal plugin.
-	server.register((fastify, opts) => app(fastify, { prisma, redis, ...opts }));
+	fastify({ logger: true })
+		.register((fastify, opts) => app(fastify, { prismaClient, redisClient, ...opts } as AppOptions))
+		.listen({ port, host }, (error, address) => {
+			if (error) {
+				console.error(error);
+				process.exit(1);
+			}
 
-	// Start listening.
-	server.listen({ port: config.PORT, host: config.HOST }, (err) => {
-		if (err) {
-			server.log.error(err);
-			process.exit(1);
-		}
-
-		server.log.info(`[ ready ] http://${config.HOST}:${config.PORT}`);
-	});
+			console.info(`Server listening at ${address}`);
+		});
 }
 
-main();
+async function connectToRedis() {
+	try {
+		const redisClient = await createClient().connect();
 
-process.on("exit", () => {
-	prisma.$disconnect();
-	redis.disconnect();
+		if (process.env.NODE_ENV === "development") {
+			await redisClient.flushDb();
+			console.info("Redis DB flushed in development environment");
+		}
+
+		return redisClient;
+	} catch (error) {
+		throw new Error(`Failed to connect tp Redis: ${error.message}`);
+	}
+}
+
+main().catch((error) => {
+	console.error("An error occurred", error.message);
+	process.exit(1);
 });
