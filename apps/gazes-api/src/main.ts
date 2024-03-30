@@ -5,7 +5,7 @@ import Fastify from "fastify";
 import { createClient } from "redis";
 
 export const server = Fastify({
-  logger: false,
+  logger: true,
 });
 
 const prisma = new PrismaClient();

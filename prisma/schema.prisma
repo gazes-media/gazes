@@ -49,6 +49,8 @@ model Episode {
 
   anime Anime @relation(fields: [anime_id], references: [id])
   anime_id Int
+
+  history AnimeHistory[]
 }
 
 model Latest {
@@ -60,4 +62,28 @@ model Latest {
 
   anime_id Int
   anime Anime @relation(fields: [anime_id], references: [id])
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique
+  password String? @db.Text
+  username String @unique
+  discord_id String? @unique
+  firebase_id String? @unique
+  avatar_url String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  history AnimeHistory[]
+}
+
+model AnimeHistory {
+  id Int @id @default(autoincrement())
+  timestamp Int
+  duration Int
+  episode Episode @relation(fields: [episode_id], references: [id])
+  episode_id Int
+  user User @relation(fields: [user_id], references: [id])
+  user_id Int
 }
