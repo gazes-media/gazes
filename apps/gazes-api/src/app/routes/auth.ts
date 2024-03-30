@@ -9,8 +9,8 @@ import { UserService } from "../services/userService";
  * @param {FastifyInstance} fastify - The Fastify instance.
  * @param {AppOptions} options - The application options including Prisma clients.
  */
-export default async function (fastify: FastifyInstance, { prisma }: AppOptions) {
-	const userService = new UserService(prisma);
+export default async function (fastify: FastifyInstance, { prismaClient }: AppOptions) {
+	const userService = new UserService(prismaClient);
 
 	/**
 	 * Registers a new user.

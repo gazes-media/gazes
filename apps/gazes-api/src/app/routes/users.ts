@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { AppOptions } from "@api/main";
 
-export default async function (fastify: FastifyInstance, { redis, prisma }: AppOptions) {
+export default async function (fastify: FastifyInstance, { redisClient, prismaClient }: AppOptions) {
 	// TODO
 }

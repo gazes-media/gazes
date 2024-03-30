@@ -1,3 +1,5 @@
+import { Anime, Episode } from "@prisma/client";
+
 export interface AnimeListQuerystring {
 	page?: number;
 	title?: string;
@@ -5,6 +7,8 @@ export interface AnimeListQuerystring {
 	status?: number;
 	releaseDate?: number;
 }
+
+export type AnimeWithEpisodes = {episodes: Episode[]} & Anime
 
 export const AnimeListQuerystringSchema = {
 	type: "object",

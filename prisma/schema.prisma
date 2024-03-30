@@ -55,7 +55,7 @@ model Episode {
 
 model Latest {
   id Int @id @default(autoincrement())
-  timestamp DateTime @default(now())
+  timestamp String
   episode String
   lang String
   anime_url String @unique
