@@ -1,10 +1,10 @@
 export interface UserParams {
-    id: number;
+	id: number;
 }
 
 export const UserParamsSchema = {
-    type: 'object',
-    properties: {
-        id: { type: 'number' },
-    },
+	type: "object",
+	properties: {
+		id: { type: "number" },
+	},
 };
