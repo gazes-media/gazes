@@ -7,6 +7,13 @@ import { config } from '@api/config';
 import { Latest } from '@api/contracts/animesContract';
 import { fetchType } from './utils/fetchUtils';
 
+/**
+ * Initializes the Fastify application with auto-loaded plugins and routes,
+ * and periodically updates the anime database.
+ *
+ * @param {FastifyInstance} fastify - The Fastify instance to configure.
+ * @param {AppOptions} opts - Options containing Prisma and Redis clients.
+ */
 export async function app(fastify: FastifyInstance, opts: AppOptions) {
     updateAnimeDatabase(opts.prisma);
     setInterval(() => updateAnimeDatabase(opts.prisma), 3600000);
@@ -22,6 +29,11 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
     });
 }
 
+/**
+ * Updates the anime database with the latest anime list and episodes from an external source.
+ *
+ * @param {PrismaClient} prisma - The Prisma client for database operations.
+ */
 async function updateAnimeDatabase(prisma: PrismaClient) {
     // Fetch the list of animes
     const animeList = await fetchType(config.NEKO_JSON_URL, 'json');
@@ -54,7 +66,6 @@ async function updateAnimeDatabase(prisma: PrismaClient) {
             anime_url: episode.url,
             anime_id: parseInt(episode.anime_url.match(/\/(\d+)/i)?.[1]),
         })),
-
         skipDuplicates: true,
     });
 }
