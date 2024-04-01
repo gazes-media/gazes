@@ -82,7 +82,7 @@ model User {
 
 model AnimeHistory {
   id Int @id @default(autoincrement())
-  timestamp DateTime @db.Timestamp()
+  timestamp Int
   duration Int
   episode Episode @relation(fields: [episode_id], references: [id])
   episode_id Int

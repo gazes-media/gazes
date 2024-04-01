@@ -37,3 +37,10 @@ export interface Latest {
 	url: string;
 	anime_url: string;
 }
+
+export interface EpisodeToStore {
+	id: number;
+	ep: number;
+	time: number;
+	duration: number;
+}

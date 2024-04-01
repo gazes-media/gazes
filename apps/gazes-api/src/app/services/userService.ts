@@ -1,4 +1,5 @@
-import type { PrismaClient } from "@prisma/client";
+import { EpisodeToStore } from "@api/contracts/animesContract";
+import type { AnimeHistory, Episode, Prisma, PrismaClient } from "@prisma/client";
 import { hash, verify } from "argon2";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
@@ -48,5 +49,56 @@ export class UserService {
 		} catch (err) {
 			reply.send(err)
 		}
+	}
+
+	async getUserById(id: number) {
+		return this.prisma.user.findUnique({
+			where: { id },
+			select: { id: true, username: true},
+		});
+	}
+
+	async getHistory(userId: number) {
+		const user = await this.prisma.user.findUnique({
+			where: { id: userId },
+			select: { history: true },
+		});
+
+		return user?.history || [];
+	}
+
+	async postToHistory(userId: number, episode: EpisodeToStore) {
+		const { id } = await this.prisma.episode.findFirst({
+			where:{
+				anime_id: episode.id,
+				num: episode.ep
+			},
+			select: {
+				id: true
+			}
+		})
+		if(id){
+			return this.prisma.animeHistory.create({
+				data: {
+					user_id: userId,
+					episode_id: id,
+					timestamp: episode.time,	
+					duration: episode.duration,
+				},
+			})
+		}
+		return undefined;
+	}
+
+	async deleteFromHistory(userId: number, animeId: number, episode: number) {
+		return this.prisma.animeHistory.deleteMany({
+			where: {
+				user_id: userId,
+				episode:{
+					num: episode,
+					anime_id: animeId
+				}
+			},
+		})
 	}
 }
