@@ -24,7 +24,7 @@ export default async function (fastify: FastifyInstance, { prismaClient }: AppOp
 	fastify.post<{ Body: RegisterBody }>("/register", { schema: { body: RegisterBodySchema } }, async (req, rep) => {
 		try {
 			const { email, username, password } = req.body;
-			const { user, token } = await userService.registerUser(email, username, password);
+			const { user, token } = await userService.registerUser(email, username, password, fastify);
 
 			rep.header("Set-Cookie", `token=${token}; HttpOnly; Path=/; Secure; SameSite=Strict`);
 			rep.status(201).send(user);
@@ -50,7 +50,7 @@ export default async function (fastify: FastifyInstance, { prismaClient }: AppOp
 	fastify.post<{ Body: LoginBody }>("/login", { schema: { body: LoginBodySchema } }, async (req, rep) => {
 		try {
 			const { email, password } = req.body;
-			const { user, token } = await userService.authenticateUser(email, password);
+			const { user, token } = await userService.authenticateUser(email, password, fastify);
 
 			rep.header("Set-Cookie", `token=${token}; HttpOnly; Path=/; Secure; SameSite=Strict`);
 			rep.status(200).send(user);
