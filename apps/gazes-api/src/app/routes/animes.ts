@@ -38,6 +38,12 @@ export default async function (fastify: FastifyInstance, { redisClient, prismaCl
 		},
 	);
 
+	fastify.get("/animes/latest", async (req, rep) => {
+		const latestAnimes = await animeService.getLatestAnimes();
+
+		rep.status(StatusCodes.OK).send(latestAnimes);
+	});
+
 	fastify.get<{ Params: AnimeDetailParams }>("/animes/:id", { schema: { params: AnimeDetailParamsSchema } }, async (req, rep) => {
 		const anime = await animeService.getAnimeById(req.params.id);
 

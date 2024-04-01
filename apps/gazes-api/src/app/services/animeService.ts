@@ -1,4 +1,4 @@
-import type { Anime, Episode, Prisma, PrismaClient } from "@prisma/client";
+import type { Anime, Episode, Latest, Prisma, PrismaClient } from "@prisma/client";
 import he from "he";
 import { fetchType } from "../utils/fetchUtils";
 import { CacheManager } from "../utils/cacheManager";
@@ -61,6 +61,18 @@ export class AnimeService {
 		}
 
 		return animesList; // Return the original list if no enrichment is required
+	}
+
+	public async getLatestAnimes(): Promise<Latest[]> {
+		let latestAnimeList = await this.cacheManager.getCache<Latest[]>("latestAnimes");
+		if(!latestAnimeList) {
+			latestAnimeList = await this.prismaClient.latest.findMany({
+				orderBy: { timestamp: "desc" },
+				include: { anime: true },
+			});
+			await this.cacheManager.setCache("latestAnimes", latestAnimeList);
+		}
+		return latestAnimeList;
 	}
 
 	private buildQueryOptions({
