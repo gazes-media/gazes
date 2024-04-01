@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { AppOptions } from "@api/main";
 import { type RegisterBody, type LoginBody, LoginBodySchema, RegisterBodySchema } from "@api/contracts/authContract";
 import { UserService } from "../services/userService";
+import { StatusCodes } from "http-status-codes";
 
 /**
  * Initializes authentication routes.
@@ -27,13 +28,13 @@ export default async function (fastify: FastifyInstance, { prismaClient }: AppOp
 			const { user, token } = await userService.registerUser(email, username, password, fastify);
 
 			rep.header("Set-Cookie", `token=${token}; HttpOnly; Path=/; Secure; SameSite=Strict`);
-			rep.status(201).send(user);
+			rep.status(StatusCodes.CREATED).send(user);
 		} catch (e) {
 			if (e.code === "P2002") {
-				rep.status(400).send("User already exists");
+				rep.status(StatusCodes.BAD_REQUEST).send("User already exists");
 				return;
 			}
-			rep.status(500).send("An unexpected error occurred");
+			rep.status(StatusCodes.INTERNAL_SERVER_ERROR).send("An unexpected error occurred");
 		}
 	});
 
@@ -53,14 +54,14 @@ export default async function (fastify: FastifyInstance, { prismaClient }: AppOp
 			const { user, token } = await userService.authenticateUser(email, password, fastify);
 
 			rep.header("Set-Cookie", `token=${token}; HttpOnly; Path=/; Secure; SameSite=Strict`);
-			rep.status(200).send(user);
+			rep.status(StatusCodes.OK).send(user);
 		} catch (e) {
 			if (e.message === "Invalid Credentials") {
-				rep.status(401).send(e.message);
+				rep.status(StatusCodes.UNAUTHORIZED).send(e.message);
 				return;
 			}
 			console.error(e);
-			rep.status(500).send("An unexpected error occurred");
+			rep.status(StatusCodes.INTERNAL_SERVER_ERROR).send("An unexpected error occurred");
 		}
 	});
 }

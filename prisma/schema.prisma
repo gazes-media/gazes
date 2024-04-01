@@ -74,6 +74,8 @@ model User {
   avatar_url String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  suscribtion_type Int?
+  suscribtion_end DateTime?
 
   history AnimeHistory[]
 }

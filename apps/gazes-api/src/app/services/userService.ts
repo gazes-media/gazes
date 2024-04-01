@@ -39,6 +39,12 @@ export class UserService {
 	async authenticate(request: FastifyRequest, reply: FastifyReply) {
 		try {
 			await request.jwtVerify()
+			if(request.user){
+				request.user = await this.prisma.user.findUnique({
+					where: { id: (request.user as { id: number }).id },
+					select: { id: true, username: true },
+				});
+			}
 		} catch (err) {
 			reply.send(err)
 		}

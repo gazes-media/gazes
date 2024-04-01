@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { AppOptions } from "@api/main";
 import { UserService } from "../services/userService";
+import { StatusCodes } from "http-status-codes";
 
 export default async function (fastify: FastifyInstance, { redisClient, prismaClient }: AppOptions) {
 	const userService = new UserService(prismaClient)
@@ -8,6 +9,6 @@ export default async function (fastify: FastifyInstance, { redisClient, prismaCl
 	fastify.get("/users/@me",{
 		onRequest:[userService.authenticate]
 	}, (req, rep) =>{
-		return req.user
+		rep.status(StatusCodes.OK).send(req.user)
 	})
 }

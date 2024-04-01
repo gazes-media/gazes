@@ -1,10 +1,10 @@
 import { AppOptions } from "@api/main";
 import { FastifyInstance } from "fastify";
-import { AnimeService } from "../services/animeService";
+import { AnimeService } from "@api/app/services/animeService";
 import { AnimeDetailParams, AnimeDetailParamsSchema, AnimeListQuerystring, AnimeListQuerystringSchema } from "@api/contracts/animesContract";
 import { StatusCodes } from "http-status-codes";
-import { Anime, Prisma } from "@prisma/client";
-import { CacheManager } from "../utils/cacheManager";
+import { Anime } from "@prisma/client";
+import { CacheManager } from "@api/app/utils/cacheManager";
 
 export default async function (fastify: FastifyInstance, { redisClient, prismaClient }: AppOptions) {
 	const cacheManager = new CacheManager(redisClient);
@@ -48,11 +48,11 @@ export default async function (fastify: FastifyInstance, { redisClient, prismaCl
 		const anime = await animeService.getAnimeById(req.params.id);
 
 		if (!anime) {
-			rep.status(404).send("Anime Not Found");
+			rep.status(StatusCodes.NOT_FOUND).send("Anime Not Found");
 			return;
 		}
 
-		rep.status(200).send(anime);
+		rep.status(StatusCodes.OK).send(anime);
 	});
 }
 
