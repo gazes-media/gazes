@@ -5,6 +5,8 @@ import { app } from "./app/app";
 import { getEnv } from "./config";
 import { fetchType } from "./app/utils/fetchUtils";
 import { Latest } from "./contracts/animesContract";
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
+
 
 export interface AppOptions {
 	prismaClient: PrismaClient;
@@ -22,6 +24,7 @@ async function main() {
 	const host = getEnv("HOST");
 
 	fastify({ logger: true })
+		.withTypeProvider<TypeBoxTypeProvider>()
 		.register((fastify, opts) => app(fastify, { prismaClient, redisClient, ...opts } as AppOptions))
 		.listen({ port, host }, (error, address) => {
 			if (error) {

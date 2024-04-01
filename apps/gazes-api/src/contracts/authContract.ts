@@ -1,43 +1,19 @@
-export interface RegisterBody {
-	email: string;
-	password: string;
-	username: string;
-}
+import { Type, Static } from "@sinclair/typebox";
 
-export const RegisterBodySchema = {
-	type: "object",
-	required: ["email", "password", "username"],
-	properties: {
-		email: {
-			type: "string",
-			pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
-		},
-		password: {
-			type: "string",
-			pattern: "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$",
-		},
-		username: { type: "string" },
-	},
-};
 
-export interface LoginBody {
-	email: string;
-	password: string;
-}
+export type RegisterBody = Static<typeof RegisterBodySchema>;
 
-export const LoginBodySchema = {
-	type: "object",
-	required: ["email", "password"],
-	properties: {
-		email: { type: "string" },
-		password: { type: "string" },
-	},
-};
+export const RegisterBodySchema = Type.Object({
+    email: Type.String({ format: "email" }),
+    password: Type.String({ pattern: "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$" }),
+    username: Type.String(),
+});
 
-export interface JWTToken {
-	iss?: string;
-	sub?: string;
-	iat?: number;
-	exp?: number;
-	[key: string]: unknown;
-}
+
+export type LoginBody = Static<typeof LoginBodySchema>;
+
+export const LoginBodySchema = Type.Object({
+    email: Type.String({ format: "email" }),
+    password: Type.String(),
+});
+

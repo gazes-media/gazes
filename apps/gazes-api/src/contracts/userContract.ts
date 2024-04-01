@@ -1,10 +1,7 @@
-export interface UserParams {
-	id: number;
-}
+import { Type, Static } from "@sinclair/typebox";
 
-export const UserParamsSchema = {
-	type: "object",
-	properties: {
-		id: { type: "number" },
-	},
-};
+export type UserParams = Static<typeof UserParamsSchema>;
+
+export const UserParamsSchema = Type.Object({
+	id: Type.Number(),
+});
