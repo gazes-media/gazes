@@ -1,0 +1,51 @@
+
+				     GAZES
+
+Welcome to our anime streaming website project! This platform aims to
+provide users with a seamless and enjoyable experience for streaming
+their anime series and movies. Below, you'll find information about
+the project structure, features, and how to get started.
+
+LEGAL 
+    The project and the code within this repository is, unless
+    otherwise notified, governed and distributed by the GNU Affero General
+    Public License, Version 3.0 only. A copy of the license is available
+    in the LICENSE file.
+
+DEVELOPMENT SETUP INSTRUCTIONS 
+    This section outlines the steps
+    required to set up your development environment for contributing to
+    the GAZES project. Follow these guidelines to ensure a smooth setup
+    process.
+    
+	INSTALLATION 
+	    bun must be installed on your machine to proceed with
+	    project development. Here’s how based on your operating system:
+
+		Linux/MacOS:
+		1. Open you terminal.
+		2. Execute: $ curl -fsSL https://bun.sh/install | bash
+		3. Restart your terminal or source you profile script to
+		refresh PATH.
+
+		Windows:
+		1. Open PowerShell as an administrator.
+		2. Execute: $ irm bun.sh/install.ps1 | iex
+		3. Restart PowerShell after installation.
+
+	VERIFY INSTALLATION 
+	    To check if bun was installed correctly:
+		- Open a new terminal or PowerShell window.
+		- Run: bun --version If successful, you’ll see the bun version
+		  printed to the console.
+
+    CLONE THE PROJECT
+		Clone the project repository to your local machine using:
+		$ git clone git@github.com:gazes-media/gazes.git
+
+    INSTALL DEPENDENCIES
+	    Navigate to the project directory and install dependencies:
+		$ cd gazes
+		$ bun instal
+		This will install all necessary dependencies as listed in
+		package.json
