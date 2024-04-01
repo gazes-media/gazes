@@ -8,8 +8,11 @@
 	"private": true,
 	"dependencies": {
 		"@fastify/autoload": "~5.7.1",
+		"@fastify/jwt": "^8.0.0",
 		"@fastify/sensible": "~5.2.0",
+		"@fastify/type-provider-typebox": "^4.0.0",
 		"@prisma/client": "^5.11.0",
+		"@sinclair/typebox": "^0.32.20",
 		"@types/he": "^1.2.3",
 		"argon2": "^0.40.1",
 		"bfj": "^8.0.0",
@@ -18,7 +21,6 @@
 		"fuse.js": "^7.0.0",
 		"he": "^1.2.0",
 		"http-status-codes": "^2.3.0",
-		"openssl": "^2.0.0",
 		"redis": "^4.6.13",
 		"ssl": "^1.0.0",
 		"tslib": "^2.3.0"
