@@ -1,0 +1,10 @@
+{
+  "name": "@gazes/api",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist/ --target bun"
+  },
+  "dependencies": {
+    "fastify": "^4.26.2"
+  }
+}
