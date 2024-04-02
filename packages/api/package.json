@@ -5,6 +5,7 @@
     "build": "bun build src/index.ts --outdir dist/ --target bun"
   },
   "dependencies": {
-    "fastify": "^4.26.2"
+    "fastify": "^4.26.2",
+    "@gazes/types": "workspace:*"
   }
 }

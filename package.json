@@ -1,9 +1,10 @@
 {
 	"name": "gazes",
-	"version": "1.0.0",
+	"private": true,
 	"workspaces": ["packages/*"],
 	"scripts": {
-		"format": "biome format . --write"
+		"format": "biome format . --write",
+		"clean": "rm -rf node_modules packages/a/node_modules packages/b/node_modules bun.lockb packages/a/bun.lockb packages/b/bun.lockb"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.6.3",
