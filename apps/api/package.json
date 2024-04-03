@@ -1,11 +1,13 @@
 {
   "name": "@gazes/api",
   "scripts": {
-    "dev": "bun run src/index.ts",
+    "dev": "bun run --hot src/index.ts",
     "build": "bun build src/index.ts --outdir dist/ --target bun"
   },
   "dependencies": {
+    "@fastify/type-provider-typebox": "^4.0.0",
+    "@gazes/types": "workspace:*",
     "fastify": "^4.26.2",
-    "@gazes/types": "workspace:*"
+    "redis": "^4.6.13"
   }
 }

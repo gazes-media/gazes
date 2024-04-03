@@ -1,7 +1,10 @@
 {
   "name": "gazes",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
     "format": "biome format . --write",
     "clean": "rm -rf node_modules packages/a/node_modules packages/b/node_modules bun.lockb packages/a/bun.lockb packages/b/bun.lockb"
@@ -14,6 +17,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@sinclair/typebox": "^0.32.20",
     "prisma": "^5.12.0"
   }
 }

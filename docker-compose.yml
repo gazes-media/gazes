@@ -1,0 +1,17 @@
+services:
+
+  db:
+    image: postgres:alpine
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: pg-dev
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: 'redislabs/redismod'
+    ports:
+      - '6379:6379'

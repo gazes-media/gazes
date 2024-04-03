@@ -16,11 +16,13 @@ model Anime {
   alternativeTitles String?
   mediaType         String
   airingStatus      String
-  popularityScore   Float
   externalUrl       String
   genres            String[]
   coverImageUrl     String
+  popularityScore   Float
   averageScore      Float
   startYear         Int
   episodesCount     Int?
+  synopsis          String?
+  bannerImageUrl    String?
 }
