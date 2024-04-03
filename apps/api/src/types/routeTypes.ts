@@ -22,14 +22,14 @@ export type ErrorResponse = {
 	};
 };
 
-export type Response = SuccessResponse|ErrorResponse
+export type Response = SuccessResponse | ErrorResponse;
 
 export const AnimeListQuerystring = Type.Object({
 	page: Type.Optional(Type.Number()),
 	title: Type.Optional(Type.String()),
 	genres: Type.Optional(Type.String()),
-	status: Type.Optional(Type.Number()),
-	releaseDate: Type.Optional(Type.Number()),
+	airingStatus: Type.Optional(Type.Number()),
+	startYear: Type.Optional(Type.Number()),
 });
 
-export type AnimeListQuerystring = Static<typeof AnimeListQuerystring>
+export type AnimeListQuerystring = Static<typeof AnimeListQuerystring>;

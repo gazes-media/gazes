@@ -18,8 +18,8 @@ for await (const file of new Glob("**/*Router.*").scan(import.meta.dir)) {
 	const prismaClient = new PrismaClient();
 	const redisClient = (await createClient().connect()) as RedisClientType;
 
-	const animeService = new AnimeService(redisClient, prismaClient)
-	await animeService.updateDatabase()
+	const animeService = new AnimeService(redisClient, prismaClient);
+	await animeService.updateDatabase();
 
 	// Register each found router module with the Fastify application.
 	// The router modules are expected to export a default function that defines routes.
