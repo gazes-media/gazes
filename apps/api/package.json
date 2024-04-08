@@ -1,13 +1,16 @@
 {
-	"name": "@gazes/api",
-	"scripts": {
-		"dev": "bun run --hot src/index.ts",
-		"build": "bun build src/index.ts --outdir dist/ --target bun"
-	},
-	"dependencies": {
-		"@fastify/type-provider-typebox": "^4.0.0",
-		"@gazes/types": "workspace:*",
-		"fastify": "^4.26.2",
-		"redis": "^4.6.13"
-	}
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "esbuild --bundle --outfile=dist/index.js src/index.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.9.0",
+    "hono": "^4.2.2",
+    "prisma": "^5.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "esbuild": "^0.20.2",
+    "tsx": "^4.7.1"
+  }
 }

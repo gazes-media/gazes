@@ -1,10 +1,9 @@
-import { app } from "@/app";
+import animeController from '@controllers/animeController'
+import { serve } from '@hono/node-server'
+import { Hono } from 'hono'
 
-const { ADDRESS = "0.0.0.0", PORT = "3000" } = Bun.env;
+const { fetch } = new Hono()
+  .route('/animes', animeController)
 
-app.listen({ port: Number.parseInt(PORT, 10), host: ADDRESS }, (error) => {
-	if (error) {
-		console.error(error);
-		process.exit(1);
-	}
-});
+const port = Number.parseInt(process.env.PORT!)
+serve({ port, fetch }, () => console.log('Listening on port', port))

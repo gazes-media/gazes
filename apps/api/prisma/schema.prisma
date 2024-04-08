@@ -1,29 +1,14 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-model Anime {
-  id                Int      @id @unique
-  titleOriginal     String
-  titleEnglish      String?
-  titleRomanized    String?
-  titleFrench       String?
-  alternativeTitles String?
-  mediaType         String
-  airingStatus      String
-  externalUrl       String
-  genres            String[]
-  coverImageUrl     String
-  popularityScore   Float
-  averageScore      Float
-  startYear         Int
-  episodesCount     Int?
-  synopsis          String?
-  bannerImageUrl    String?
 }
