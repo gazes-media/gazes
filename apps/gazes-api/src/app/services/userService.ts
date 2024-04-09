@@ -1,53 +1,28 @@
-import type { PrismaClient } from "@prisma/client";
+import { EpisodeToStore } from "@api/contracts/animesContract";
+import type { AnimeHistory, Episode, Prisma, PrismaClient } from "@prisma/client";
 import { hash, verify } from "argon2";
-import { signJWT } from "../utils/jwtUtils";
-import { config } from "@api/config";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 /**
  * Service class for handling user-related operations such as registration and authentication.
  */
 export class UserService {
-	private readonly prisma: PrismaClient;
+	constructor(
+		private readonly prisma: PrismaClient
+	) { }
 
-	/**
-	 * Creates a UserService instance.
-	 *
-	 * @param {PrismaClient} prisma - The Prisma client instance to be used for database operations.
-	 */
-	constructor(prisma: PrismaClient) {
-		this.prisma = prisma;
-	}
-
-	/**
-	 * Registers a new user with the given email, username, and password.
-	 *
-	 * @param {string} email - The email of the new user.
-	 * @param {string} username - The username of the new user.
-	 * @param {string} password - The password for the new user.
-	 * @returns {Promise<{ user: { id: number; username: string; }, token: string }>}
-	 *          An object containing the new user (excluding the password) and a JWT token.
-	 */
-	async registerUser(email: string, username: string, password: string) {
+	async registerUser(email: string, username: string, password: string, fastify: FastifyInstance) {
 		const hashedPassword = await hash(password);
 		const newUser = await this.prisma.user.create({
 			data: { email, username, password: hashedPassword },
 			select: { id: true, username: true },
 		});
 
-		const token = signJWT({ id: newUser.id }, config.JWT_SECRET);
+		const token = fastify.jwt.sign({ id: newUser.id });
 		return { user: newUser, token };
 	}
 
-	/**
-	 * Authenticates a user based on email and password.
-	 *
-	 * @param {string} email - The email of the user trying to log in.
-	 * @param {string} password - The password of the user trying to log in.
-	 * @returns {Promise<{ user: { id: number; username: string; }, token: string }>}
-	 *          An object containing the authenticated user (excluding the password) and a JWT token.
-	 * @throws {Error} If the credentials are invalid or the user cannot be found.
-	 */
-	async authenticateUser(email: string, password: string) {
+	async authenticateUser(email: string, password: string, fastify: FastifyInstance) {
 		const userWithPassword = await this.prisma.user.findUnique({
 			where: { email },
 			select: { id: true, username: true, password: true },
@@ -58,8 +33,72 @@ export class UserService {
 		}
 
 		const { password: _, ...userWithoutPassword } = userWithPassword;
-
-		const token = signJWT({ id: userWithoutPassword.id }, config.JWT_SECRET);
+		const token = fastify.jwt.sign({ id: userWithoutPassword.id });
 		return { user: userWithoutPassword, token };
+	}
+
+	async authenticate(request: FastifyRequest, reply: FastifyReply) {
+		try {
+			await request.jwtVerify()
+			if(request.user){
+				request.user = await this.prisma.user.findUnique({
+					where: { id: (request.user as { id: number }).id },
+					select: { id: true, username: true },
+				});
+			}
+		} catch (err) {
+			reply.send(err)
+		}
+	}
+
+	async getUserById(id: number) {
+		return this.prisma.user.findUnique({
+			where: { id },
+			select: { id: true, username: true},
+		});
+	}
+
+	async getHistory(userId: number) {
+		const user = await this.prisma.user.findUnique({
+			where: { id: userId },
+			select: { history: true },
+		});
+
+		return user?.history || [];
+	}
+
+	async postToHistory(userId: number, episode: EpisodeToStore) {
+		const { id } = await this.prisma.episode.findFirst({
+			where:{
+				anime_id: episode.id,
+				num: episode.ep
+			},
+			select: {
+				id: true
+			}
+		})
+		if(id){
+			return this.prisma.animeHistory.create({
+				data: {
+					user_id: userId,
+					episode_id: id,
+					timestamp: episode.time,	
+					duration: episode.duration,
+				},
+			})
+		}
+		return undefined;
+	}
+
+	async deleteFromHistory(userId: number, animeId: number, episode: number) {
+		return this.prisma.animeHistory.deleteMany({
+			where: {
+				user_id: userId,
+				episode:{
+					num: episode,
+					anime_id: animeId
+				}
+			},
+		})
 	}
 }

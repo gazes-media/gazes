@@ -1,34 +1,8 @@
-type Config = {
-	PROXY_URL: string;
-	NEKO_JSON_URL: string;
-	NEKO_URL: string;
-	HOST: string;
-	PORT: number;
-	JWT_SECRET: string;
-};
+type EnvKey = "HOST" | "JWT_SECRET" | "NEKO_JSON_URL" | "NEKO_URL" | "PORT" | "PROXY_URL"
 
-const requiredConfigs: (keyof Config)[] = ["HOST", "JWT_SECRET", "NEKO_JSON_URL", "NEKO_URL", "PORT", "PROXY_URL"];
+export function getEnv(key: EnvKey) {
+	const envVar = process.env[key]
+	if (!envVar) throw new Error(`Environment variable ${key} is not defined`)
 
-export const config: Partial<Config> = {};
-const missingConfigs: string[] = [];
-
-for (const key of requiredConfigs) {
-	const value = process.env[key];
-
-	if (!value) {
-		missingConfigs.push(key);
-		continue;
-	}
-
-	if (key === "PORT") {
-		config[key] = Number.parseInt(value, 10);
-		continue;
-	}
-
-	config[key] = value;
-}
-
-if (missingConfigs.length > 0) {
-	console.error("Missing required configurations:", missingConfigs.join(", "));
-	process.exit(1);
+	return envVar
 }

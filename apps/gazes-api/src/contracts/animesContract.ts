@@ -1,45 +1,34 @@
-export interface AnimeListQuerystring {
-	page?: number;
-	title?: string;
-	genres?: string;
-	status?: number;
-	releaseDate?: number;
-}
+import { Anime, Episode } from "@prisma/client";
+import { Type, Static } from "@sinclair/typebox";
 
-export const AnimeListQuerystringSchema = {
-	type: "object",
-	properties: {
-		page: { type: ["number", "null"] },
-		title: { type: ["string", "null"] },
-		genres: { type: ["string", "null"] },
-		status: { type: ["number", "null"] },
-		releaseDate: { type: ["number", "null"] },
-	},
-};
+export type AnimeListQuerystring = Static<typeof AnimeListQuerystringSchema>;
 
-export interface AnimeDetailParams {
-	id: number;
-}
+export type AnimeWithEpisodes = {episodes: Episode[]} & Anime
 
-export const AnimeDetailParamsSchema = {
-	type: "object",
-	properties: {
-		id: { type: "number" },
-	},
-};
+export const AnimeListQuerystringSchema = Type.Object({
+	page: Type.Optional(Type.Number()),
+	title: Type.Optional(Type.String()),
+	genres: Type.Optional(Type.String()),
+	status: Type.Optional(Type.Number()),
+	releaseDate: Type.Optional(Type.Number()),
+});
 
-export interface EpisodeParams {
-	id: number;
-	ep: number;
-}
 
-export const EpisodeParamsSchema = {
-	type: "object",
-	properties: {
-		id: { type: "number" },
-		ep: { type: "number" },
-	},
-};
+
+export type AnimeDetailParams = Static<typeof AnimeDetailParamsSchema>;
+
+export const AnimeDetailParamsSchema = Type.Object({
+	id: Type.Number(),
+});
+
+
+export type EpisodeParams = Static<typeof EpisodeParamsSchema>;
+
+export const EpisodeParamsSchema = Type.Object({
+	id: Type.Number(),
+	ep: Type.Number(),
+});
+
 
 export interface Latest {
 	timestamp: number;
@@ -47,4 +36,11 @@ export interface Latest {
 	lang: string;
 	url: string;
 	anime_url: string;
+}
+
+export interface EpisodeToStore {
+	id: number;
+	ep: number;
+	time: number;
+	duration: number;
 }

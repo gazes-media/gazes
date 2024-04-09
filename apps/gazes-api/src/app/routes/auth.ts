@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { AppOptions } from "@api/main";
 import { type RegisterBody, type LoginBody, LoginBodySchema, RegisterBodySchema } from "@api/contracts/authContract";
 import { UserService } from "../services/userService";
+import { StatusCodes } from "http-status-codes";
 
 /**
  * Initializes authentication routes.
@@ -9,8 +10,8 @@ import { UserService } from "../services/userService";
  * @param {FastifyInstance} fastify - The Fastify instance.
  * @param {AppOptions} options - The application options including Prisma clients.
  */
-export default function (fastify: FastifyInstance, { prisma }: AppOptions) {
-	const userService = new UserService(prisma);
+export default async function (fastify: FastifyInstance, { prismaClient }: AppOptions) {
+	const userService = new UserService(prismaClient);
 
 	/**
 	 * Registers a new user.
@@ -24,16 +25,16 @@ export default function (fastify: FastifyInstance, { prisma }: AppOptions) {
 	fastify.post<{ Body: RegisterBody }>("/register", { schema: { body: RegisterBodySchema } }, async (req, rep) => {
 		try {
 			const { email, username, password } = req.body;
-			const { user, token } = await userService.registerUser(email, username, password);
+			const { user, token } = await userService.registerUser(email, username, password, fastify);
 
 			rep.header("Set-Cookie", `token=${token}; HttpOnly; Path=/; Secure; SameSite=Strict`);
-			rep.status(201).send(user);
+			rep.status(StatusCodes.CREATED).send(user);
 		} catch (e) {
 			if (e.code === "P2002") {
-				rep.status(400).send("User already exists");
+				rep.status(StatusCodes.BAD_REQUEST).send("User already exists");
 				return;
 			}
-			rep.status(500).send("An unexpected error occurred");
+			rep.status(StatusCodes.INTERNAL_SERVER_ERROR).send("An unexpected error occurred");
 		}
 	});
 
@@ -50,17 +51,17 @@ export default function (fastify: FastifyInstance, { prisma }: AppOptions) {
 	fastify.post<{ Body: LoginBody }>("/login", { schema: { body: LoginBodySchema } }, async (req, rep) => {
 		try {
 			const { email, password } = req.body;
-			const { user, token } = await userService.authenticateUser(email, password);
+			const { user, token } = await userService.authenticateUser(email, password, fastify);
 
 			rep.header("Set-Cookie", `token=${token}; HttpOnly; Path=/; Secure; SameSite=Strict`);
-			rep.status(200).send(user);
+			rep.status(StatusCodes.OK).send(user);
 		} catch (e) {
 			if (e.message === "Invalid Credentials") {
-				rep.status(401).send(e.message);
+				rep.status(StatusCodes.UNAUTHORIZED).send(e.message);
 				return;
 			}
 			console.error(e);
-			rep.status(500).send("An unexpected error occurred");
+			rep.status(StatusCodes.INTERNAL_SERVER_ERROR).send("An unexpected error occurred");
 		}
 	});
 }

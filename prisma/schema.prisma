@@ -55,7 +55,7 @@ model Episode {
 
 model Latest {
   id Int @id @default(autoincrement())
-  timestamp DateTime @default(now())
+  timestamp String
   episode String
   lang String
   anime_url String @unique
@@ -74,6 +74,8 @@ model User {
   avatar_url String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  suscribtion_type Int?
+  suscribtion_end DateTime?
 
   history AnimeHistory[]
 }

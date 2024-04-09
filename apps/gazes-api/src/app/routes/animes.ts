@@ -1,145 +1,59 @@
-import {
-	type AnimeListQuerystring,
-	AnimeListQuerystringSchema,
-	type AnimeDetailParams,
-	AnimeDetailParamsSchema,
-	type EpisodeParams,
-	EpisodeParamsSchema,
-} from "@api/contracts/animesContract";
-import type { FastifyInstance } from "fastify";
-import type { AppOptions } from "@api/main";
-import { AnimeService } from "../services/animeService";
+import { AppOptions } from "@api/main";
+import { FastifyInstance } from "fastify";
+import { AnimeService } from "@api/app/services/animeService";
+import { AnimeDetailParams, AnimeDetailParamsSchema, AnimeListQuerystring, AnimeListQuerystringSchema } from "@api/contracts/animesContract";
+import { StatusCodes } from "http-status-codes";
+import { Anime } from "@prisma/client";
+import { CacheManager } from "@api/app/utils/cacheManager";
 
-/**
- * Initializes anime listing and detail routes.
- *
- * @param {FastifyInstance} fastify - The Fastify instance.
- * @param {AppOptions} options - The application options including Redis and Prisma clients.
- */
-export default async function (fastify: FastifyInstance, { redis, prisma }: AppOptions) {
-	const animeService = new AnimeService(prisma, redis);
+export default async function (fastify: FastifyInstance, { redisClient, prismaClient }: AppOptions) {
+	const cacheManager = new CacheManager(redisClient);
+	const animeService = new AnimeService(prismaClient, cacheManager);
 
-	/**
-	 * Route serving a paginated list of animes with optional filtering.
-	 *
-	 * @route GET /animes
-	 * @param {AnimeListQuerystring} req.query - Filters for the anime list.
-	 * @returns {void}
-	 */
-	fastify.get<{ Querystring: AnimeListQuerystring }>("/animes", { schema: { querystring: AnimeListQuerystringSchema } }, async (req, rep) => {
-		const { page = 1, title, genres, status, releaseDate } = req.query;
-		const queryOptions = {
-			skip: 25 * (page - 1),
-			take: 25,
-			where: {},
-		};
+	fastify.get<{ Querystring: AnimeListQuerystring }>(
+		"/animes",
+		{
+			schema: { querystring: AnimeListQuerystringSchema },
+		},
+		async (req, rep) => {
+			try {
+				const { page = 1, title, genres, status, releaseDate } = req.query;
+				const cacheKey = `animesList:${page}:${title}:${genres}:${status}:${releaseDate}`;
 
-		if (title) queryOptions.where["others"] = { search: title.split(" ").join(" & ") };
-		if (genres) queryOptions.where["genres"] = { hasEvery: genres.split(",") };
-		if (status) queryOptions.where["status"] = { equals: status.toString() };
-		if (releaseDate)
-			queryOptions.where["start_date_year"] = {
-				equals: releaseDate.toString(),
-			};
+				// Attempt to retrieve cached data
+				const cachedResult: Anime[] = await cacheManager.getCache(cacheKey);
+				if (cachedResult) {
+					rep.status(StatusCodes.OK).send(cachedResult || []);
+					return;
+				}
 
-		const animeList = await prisma.anime.findMany(queryOptions);
-		rep.status(200).send(animeList);
-	});
-
-	/**
-	 * Route serving the latest episodes of animes.
-	 *
-	 * @route GET /animes/latests
-	 * @returns {void}
-	 */
-	fastify.get("/animes/latests", async (req, rep) => {
-		try {
-			const cachedLatestList = await redis.get("latests");
-
-			if (cachedLatestList) {
-				rep.status(200).send(JSON.parse(cachedLatestList));
-				return;
+				const animesList = await animeService.getAndEnrichAnimesList({page, title, genres, status, releaseDate})
+				await cacheManager.setCache(cacheKey, animesList);
+				
+				rep.status(StatusCodes.OK).send(animesList || []);
+			} catch (error) {
+				console.error(error);
+				rep.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ error: "Internal Server Error" });
 			}
+		},
+	);
 
-			const latestList = await prisma.latest.findMany({
-				orderBy: { timestamp: "desc" },
-				include: { anime: true },
-			});
+	fastify.get("/animes/latest", async (req, rep) => {
+		const latestAnimes = await animeService.getLatestAnimes();
 
-			const mappedLatestList = latestList.map(({ timestamp, ...remains }) => ({
-				timestamp: timestamp.getTime(),
-				...remains,
-			}));
-
-			await redis.set("latests", JSON.stringify(mappedLatestList));
-			await redis.expireAt("latests", Date.now() + 3600000);
-
-			rep.status(200).send(mappedLatestList);
-		} catch (err) {
-			console.error("Failed to fetch latest animes:", err);
-			rep.status(500).send({ error: "Internal Server Error" });
-		}
+		rep.status(StatusCodes.OK).send(latestAnimes);
 	});
 
-	/**
-	 * Route retrieving detailed information for a specified anime by ID.
-	 *
-	 * @route GET /animes/:id
-	 * @param {AnimeDetailParams} req.params - The ID of the anime.
-	 * @returns {void}
-	 */
 	fastify.get<{ Params: AnimeDetailParams }>("/animes/:id", { schema: { params: AnimeDetailParamsSchema } }, async (req, rep) => {
 		const anime = await animeService.getAnimeById(req.params.id);
 
 		if (!anime) {
-			rep.status(404).send("Anime Not Found");
+			rep.status(StatusCodes.NOT_FOUND).send("Anime Not Found");
 			return;
 		}
 
-		rep.status(200).send(anime);
-	});
-
-	/**
-	 * Route for retrieving video links for a specific anime episode.
-	 *
-	 * @route GET /animes/:id/:ep
-	 * @param {EpisodeParams} req.params - The ID of the anime and the episode number.
-	 * @returns {void}
-	 */
-	fastify.get<{ Params: EpisodeParams }>("/animes/:id/:ep", { schema: { params: EpisodeParamsSchema } }, async (req, rep) => {
-		const { id, ep } = req.params;
-
-		if (ep <= 0) {
-			rep.status(404).send("Episode Not Found");
-			return;
-		}
-
-		const { episodes, ...anime } = await animeService.getAnimeById(id);
-
-		if (!anime) {
-			rep.status(404).send("Anime Not Found");
-			return;
-		}
-
-		if (ep > episodes.length) {
-			rep.status(404).send("Episode Not Found");
-			return;
-		}
-
-		const episodeKey = `episode:${id}:${ep}`;
-		const cachedEpisode = await redis.get(episodeKey);
-		let { vf = null, vostfr = null } = cachedEpisode ? JSON.parse(cachedEpisode) : {};
-
-		if (!vostfr) vostfr = await animeService.getEpisodeVideo(episodes[ep - 1]);
-		if (!vf) vf = await animeService.getEpisodeVideo(episodes[ep - 1], true);
-
-		await redis.set(episodeKey, JSON.stringify({ vf, vostfr }));
-		await redis.expireAt(episodeKey, Date.now() + 7200000);
-
-		rep.status(200).send({
-			anime,
-			episode: episodes[ep - 1],
-			videos: { vostfr, vf },
-		});
+		rep.status(StatusCodes.OK).send(anime);
 	});
 }
+
+

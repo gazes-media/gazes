@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import fp from "fastify-plugin";
-import sensible from "@fastify/sensible";
+import jwt from "@fastify/jwt";
+import { getEnv } from "@api/config";
 
 /**
  * This plugins adds some utilities to handle http errors
@@ -8,5 +9,8 @@ import sensible from "@fastify/sensible";
  * @see https://github.com/fastify/fastify-sensible
  */
 export default fp(async (fastify: FastifyInstance) => {
-	fastify.register(sensible);
+	fastify.register(jwt, {
+        secret: getEnv("JWT_SECRET")
+    });
+    
 });
