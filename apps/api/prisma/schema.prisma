@@ -1,14 +1,33 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+generator zod {
+  provider = "zod-prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Anime {
+  id            Int      @id @unique
+  title         String
+  titleEnglish  String?
+  titleRomanji  String?
+  titleFrench   String?
+  others        String?
+  type          String
+  status        String
+  popularity    Float
+  url           String
+  genres        String[]
+  urlImage      String
+  score         String
+  startDateYear String
+  nbEps         Int?
+  synopsis      String?
+  coverUrl      String?
 }

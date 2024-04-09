@@ -1,18 +1,16 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "strict": true,
-    "types": [
-      "node"
-    ],
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    "baseUrl": "src",
-    "paths": {
-      "@/*": ["*"],
-      "@controllers/*": ["controllers/*"]
-    }
-  }
+      "compilerOptions": {
+            "target": "ESNext",
+            "module": "ESNext",
+            "moduleResolution": "node",
+            "strict": true,
+            "types": ["node"],
+            "jsx": "react-jsx",
+            "jsxImportSource": "hono/jsx",
+            "baseUrl": "src",
+            "paths": {
+                  "@/*": ["*"],
+                  "@controllers/*": ["controllers/*"]
+            }
+      }
 }
