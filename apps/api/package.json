@@ -4,16 +4,19 @@
   "description": "",
   "scripts": {
     "build": "esbuild src/index.ts --bundle --outfile=dist/out.js --platform=node",
-    "start": "pnpm run build && node dist/out.js"
+    "start": "pnpm run build && node dist/out.js",
+    "format": "biome format --write ./src/*"
   },
   "author": "l31.dev",
   "devDependencies": {
+    "@biomejs/biome": "^1.6.4",
     "@types/node": "^20.12.7",
     "esbuild": "^0.20.2",
     "typescript": "^5.4.4"
   },
   "dependencies": {
     "@hono/node-server": "^1.9.1",
-    "hono": "^4.2.3"
+    "hono": "^4.2.3",
+    "prisma": "^5.12.1"
   }
 }

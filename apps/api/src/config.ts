@@ -27,5 +27,3 @@ function getSanitzedConfig(config: ENV): Config {
 
 const config = getConfig();
 export default getSanitzedConfig(config);
-
-
